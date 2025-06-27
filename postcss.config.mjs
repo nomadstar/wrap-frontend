@@ -1,6 +1,5 @@
-// postcss.config.mjs
-export default {
-  plugins: {
-    'postcss-nested': {},
-  },
+const config = {
+  plugins: ["@tailwindcss/postcss"],
 };
+
+export default config;
