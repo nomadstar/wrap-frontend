@@ -1,0 +1,17 @@
+w3m-connect-button {
+    --w3m-button-border-radius: 12px;
+    --w3m-button-background-color: linear-gradient(to right, #6200EE, #4A00A0);
+    --w3m-button-color: white;
+    --w3m-button-font-weight: 500;
+    --w3m-button-padding: 16px 28px;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease;
+}
+
+w3m-connect-button:hover {
+    --w3m-button-background-color: linear-gradient(to right, #4A00A0, #330066);
+}
+
+w3m-connect-button::part(button) {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
