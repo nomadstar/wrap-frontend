@@ -1,5 +1,8 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDisconnect } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { 
     Wallet, 
     TrendingUp, 
@@ -14,10 +17,17 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
+    const router = useRouter();
+    const { disconnect } = useDisconnect();
+    const { isConnected } = useAccount();
     const [userInvestment] = useState(1250.00);
-    const [isConnected, setIsConnected] = useState(true);
     const [showPoolsMenu, setShowPoolsMenu] = useState(false);
     const [selectedPool, setSelectedPool] = useState('fury-cards');
+
+    const formatNumber = (num: number) => {
+    // Usar un formato consistente para evitar problemas de hidratación
+    return new Intl.NumberFormat('en-US').format(num);
+    }
 
     const pools = [
         {
@@ -61,7 +71,11 @@ const Dashboard = () => {
     const currentPool = pools.find(pool => pool.id === selectedPool);
 
     const handleDisconnect = () => {
-        setIsConnected(false);
+        // Desconectar la wallet usando Wagmi
+        disconnect();
+        
+        // Redirigir a la página inicial
+        router.push('/');
     };
 
     const handlePoolSelect = (poolId: string) => {
@@ -77,7 +91,7 @@ const Dashboard = () => {
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Wallet Disconnected</h2>
                     <p className="text-sm sm:text-base text-gray-600 mb-6">Please reconnect to continue.</p>
                     <button
-                        onClick={() => setIsConnected(true)}
+                        onClick={() => router.push('/')}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 text-sm sm:text-base"
                     >
                         Reconnect Wallet
@@ -136,7 +150,7 @@ const Dashboard = () => {
                                         <div className="flex justify-between items-center">
                                             <div>
                                                 <p className="text-sm text-white/80">Pool Value</p>
-                                                <p className="text-2xl font-bold">${pool.value.toLocaleString()}</p>
+                                                <p className="text-2xl font-bold">${formatNumber(pool.value)}</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-sm text-white/80">Investors</p>
@@ -203,7 +217,7 @@ const Dashboard = () => {
                             <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                             <span className="text-xs sm:text-sm text-gray-600">Pool Value</span>
                         </div>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900">${currentPool?.value.toLocaleString()}</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900">${formatNumber(currentPool?.value || 0)}</p>
                     </div>
 
                     <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
@@ -211,7 +225,7 @@ const Dashboard = () => {
                             <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                             <span className="text-xs sm:text-sm text-gray-600">Your Investment</span>
                         </div>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900">${userInvestment.toLocaleString()}</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900">${formatNumber(userInvestment)}</p>
                     </div>
 
                     <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
@@ -234,7 +248,7 @@ const Dashboard = () => {
                 {/* Recent Activity */}
                 <div className="bg-white rounded-xl shadow-sm">
                     <div className="p-4 sm:p-6 border-b">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Recent Pool Activity</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Recent Activity</h3>
                     </div>
                     <div className="p-4 sm:p-6">
                         <div className="space-y-4">
