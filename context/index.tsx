@@ -14,6 +14,7 @@ import {
 } from "@reown/appkit/networks";
 import React, { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
+import { UserProvider } from "../src/context/UserContext";
 
 // Set up queryClient
 const queryClient = new QueryClient();
@@ -63,7 +64,11 @@ function ContextProvider({
       config={wagmiAdapter.wagmiConfig as Config}
       initialState={initialState}
     >
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
+          {children}
+        </UserProvider>
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }
