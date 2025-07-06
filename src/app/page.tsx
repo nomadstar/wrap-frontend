@@ -446,9 +446,7 @@ function WrapSellApp() {
         error instanceof Error ? error.message : "Unknown error";
       showMessage(`❌ Transaction failed: ${errorMessage}`, "error");
     }
-  };
-
-  return (
+  }; return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar />
       <Hero />
