@@ -25,11 +25,11 @@ const Navbar: React.FC = () => {
             }}>
                 {isLoggedIn ? (
                     <>
-                        <li><w3m-button /></li>
-                        <li><w3m-network-button /></li>
+                        {/* <li><w3m-button /></li> - Comentado para evitar botones duplicados */}
+                        {/* <li><w3m-network-button /></li> - Comentado para evitar botones duplicados */}
                     </>
                 ) : (
-                    <li><w3m-button /></li>
+                    <>{/* <li><w3m-button /></li> - Comentado para evitar botones duplicados */}</>
                 )}
             </ul>
         </nav>

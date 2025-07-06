@@ -9,11 +9,11 @@ import { useUser, useUserData, useIsAuthenticated } from '../context/UserContext
 export function ExampleComponentWithUserData() {
   // Obtener solo los datos del usuario
   const userData = useUserData();
-  
+
   if (!userData) {
     return <div>Usuario no conectado</div>;
   }
-  
+
   return (
     <div>
       <h3>Bienvenido {userData.wallet_address}</h3>
@@ -25,22 +25,22 @@ export function ExampleComponentWithUserData() {
 export function ExampleComponentWithAuthentication() {
   // Verificar si está autenticado
   const isAuthenticated = useIsAuthenticated();
-  
+
   if (!isAuthenticated) {
     return <div>Por favor conecta tu wallet</div>;
   }
-  
+
   return <div>¡Usuario autenticado! Contenido protegido aquí</div>;
 }
 
 export function ExampleComponentWithFullUserContext() {
   // Obtener todo el contexto del usuario
   const { user, isLoading, error, isAuthenticated, refetch } = useUser();
-  
+
   if (isLoading) {
     return <div>Cargando...</div>;
   }
-  
+
   if (error) {
     return (
       <div>
@@ -49,11 +49,11 @@ export function ExampleComponentWithFullUserContext() {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <div>No autenticado</div>;
   }
-  
+
   return (
     <div>
       <h3>Usuario: {user?.wallet_address}</h3>

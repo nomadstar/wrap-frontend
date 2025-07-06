@@ -16,7 +16,7 @@ export function UserProfile() {
         return (
             <div className="p-4 border rounded-lg">
                 <p className="text-gray-600">No hay wallet conectada</p>
-                <w3m-button />
+                {/* <w3m-button /> - Comentado para evitar botones duplicados */}
             </div>
         );
     }
