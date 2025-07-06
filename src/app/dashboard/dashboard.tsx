@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { 
-    Wallet, 
-    TrendingUp, 
-    DollarSign, 
+import {
+    Wallet,
+    TrendingUp,
+    DollarSign,
     LogOut,
     Zap,
     Users,
@@ -19,7 +19,7 @@ import ErrorDisplay from '@/components/ui/ErrorDisplay';
 const Dashboard = () => {
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    
+
     const { dashboardData, pools, userSummary, loading, error, refetch } = useDashboard(walletAddress);
     const { balance: walletBalance } = useWalletBalance(walletAddress);
     const formattedPools = useFormattedPools(pools);
@@ -163,7 +163,7 @@ const Dashboard = () => {
                                 </div>
                                 <p className="text-sm opacity-90">{pool.description}</p>
                             </div>
-                            
+
                             <div className="p-4">
                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div>
@@ -175,7 +175,7 @@ const Dashboard = () => {
                                         <p className="font-semibold text-gray-900">${pool.userInvestment.toLocaleString()}</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex items-center justify-between text-sm text-gray-600">
                                     <div className="flex items-center space-x-1">
                                         <Users className="w-3 h-3" />
@@ -207,9 +207,8 @@ const Dashboard = () => {
                                                 {new Date(activity.timestamp).toLocaleString()}
                                             </p>
                                         </div>
-                                        <span className={`font-semibold text-sm sm:text-base ${
-                                            activity.amount > 0 ? 'text-green-600' : 'text-red-600'
-                                        }`}>
+                                        <span className={`font-semibold text-sm sm:text-base ${activity.amount > 0 ? 'text-green-600' : 'text-red-600'
+                                            }`}>
                                             {activity.amount > 0 ? '+' : ''}${Math.abs(activity.amount).toLocaleString()}
                                         </span>
                                     </div>
