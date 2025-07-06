@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAccount } from 'wagmi';
+import Sidebar from '../../components/webcomponents/sidebar';
 import Loading from '../../components/webcomponents/loading';
 import Dashboard from './dashboard';
 import StatsWidget from './statswidget';
 import Card from './card';
-import { poolsService, WrapPool, WrapSell, TCGCardData } from '../../services/poolsService';
+import { poolsService, WrapPool, TCGCardData } from '../../services/poolsService';
 
 interface CardData {
 	id: string;
@@ -17,7 +18,7 @@ interface CardData {
 
 const WrapPoolPage = () => {
 	const searchParams = useSearchParams();
-	const { address } = useAccount();
+	const { address: userAddress } = useAccount(); // Renamed but kept for future use
 	const viewParam = searchParams.get('view') || 'dashboard';
 	const poolParam = searchParams.get('pool') || null;
 
@@ -168,84 +169,79 @@ const WrapPoolPage = () => {
 		}
 	};
 
-	// Información de componentes para navegación
-	const componentInfo = {
-		dashboard: { name: 'Dashboard', description: 'Vista principal con estadísticas generales' },
-		statswidget: { name: 'Stats Widget', description: 'Widget de estadísticas del pool con gráficos' },
-		card: { name: 'Cards Collection', description: 'Vista detallada de la colección de cartas' }
+	// Pool selector component
+	const PoolSelector = () => {
+		if (wrapPools.length <= 1) return null;
+
+		return (
+			<div className="mb-6 p-4 bg-white rounded-lg shadow">
+				<label className="block text-sm font-medium text-gray-700 mb-2">
+					Seleccionar Pool:
+				</label>
+				<select
+					value={poolParam || wrapPools[0]?.contract_address || ''}
+					onChange={(e) => {
+						const newPool = e.target.value;
+						window.history.pushState({}, '', `?view=${activeView}&pool=${newPool}`);
+						window.location.reload();
+					}}
+					className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+				>
+					{wrapPools.map((pool) => (
+						<option key={pool.contract_address} value={pool.contract_address}>
+							{pool.name} ({pool.symbol})
+						</option>
+					))}
+				</select>
+			</div>
+		);
 	};
 
-	const renderNavigationMenu = () => {
-		return (
-			<div className="bg-white shadow-sm border-b mb-6">
-				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-					<div className="flex items-center justify-between flex-wrap gap-4">
-						<div className="flex items-center space-x-4">
-							<h1 className="text-2xl font-bold text-gray-900">My Pools</h1>
-							{currentPoolData?.pool && (
-								<div className="text-sm text-gray-600">
-									<span className="font-medium">{currentPoolData.pool.name}</span>
-									<span className="ml-2">({currentPoolData.pool.symbol})</span>
-								</div>
-							)}
-						</div>
-						<div className="flex space-x-2 sm:space-x-4">
-							{Object.entries(componentInfo).map(([key, info]) => (
-								<button
-									key={key}
-									onClick={() => {
-										setActiveView(key);
-										window.history.pushState({}, '', `?view=${key}${poolParam ? `&pool=${poolParam}` : ''}`);
-									}}
-									className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${activeView === key
-										? 'bg-blue-600 text-white'
-										: 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-										}`}
-									title={info.description}
-								>
-									{info.name}
-								</button>
-							))}
-						</div>
-					</div>
-					{componentInfo[activeView as keyof typeof componentInfo] && (
-						<p className="text-sm text-gray-600 mt-2">
-							{componentInfo[activeView as keyof typeof componentInfo].description}
-						</p>
-					)}
+	// View selector component
+	const ViewSelector = () => {
+		const views = [
+			{ key: 'dashboard', name: 'Dashboard', description: 'Vista principal con estadísticas generales' },
+			{ key: 'statswidget', name: 'Stats Widget', description: 'Widget de estadísticas del pool con gráficos' },
+			{ key: 'card', name: 'Cards Collection', description: 'Vista detallada de la colección de cartas' }
+		];
 
-					{/* Selector de Pool */}
-					{wrapPools.length > 1 && (
-						<div className="mt-4 pt-4 border-t">
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-								Seleccionar Pool:
-							</label>
-							<select
-								value={poolParam || wrapPools[0]?.contract_address || ''}
-								onChange={(e) => {
-									const newPool = e.target.value;
-									window.history.pushState({}, '', `?view=${activeView}&pool=${newPool}`);
-									window.location.reload();
-								}}
-								className="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-							>
-								{wrapPools.map((pool) => (
-									<option key={pool.contract_address} value={pool.contract_address}>
-										{pool.name} ({pool.symbol})
-									</option>
-								))}
-							</select>
-						</div>
-					)}
+		return (
+			<div className="mb-6 p-4 bg-white rounded-lg shadow">
+				<h2 className="text-lg font-semibold mb-4">View Options</h2>
+				<div className="flex flex-wrap gap-2">
+					{views.map(view => (
+						<button
+							key={view.key}
+							onClick={() => {
+								setActiveView(view.key);
+								window.history.pushState({}, '', `?view=${view.key}${poolParam ? `&pool=${poolParam}` : ''}`);
+							}}
+							className={`px-3 py-2 rounded-lg text-sm font-medium ${activeView === view.key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+								}`}
+							title={view.description}
+						>
+							{view.name}
+						</button>
+					))}
 				</div>
 			</div>
 		);
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50">
-			{renderNavigationMenu()}
-			<main className="max-w-6xl mx-auto">
+		<div className="flex min-h-screen">
+			<Sidebar />
+			<main className="flex-1 bg-gray-50 p-6">
+				<h1 className="text-2xl font-bold text-gray-900 mb-6">My Pools</h1>
+				{currentPoolData?.pool && (
+					<div className="mb-6">
+						<h2 className="text-xl font-semibold text-gray-800">
+							{currentPoolData.pool.name} <span className="text-sm text-gray-500">({currentPoolData.pool.symbol})</span>
+						</h2>
+					</div>
+				)}
+				<PoolSelector />
+				<ViewSelector />
 				{renderMainContent()}
 			</main>
 		</div>
