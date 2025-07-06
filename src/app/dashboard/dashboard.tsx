@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Wallet, 
     TrendingUp, 
@@ -9,58 +9,41 @@ import {
     Users,
     Calendar,
     ArrowUpRight,
-    ArrowDownRight
+    ArrowDownRight,
+    RefreshCw
 } from 'lucide-react';
+import { useDashboard, useWalletBalance, useFormattedPools } from '@/hooks/useDashboard';
+import Loading from '@/components/ui/Loading';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
 
 const Dashboard = () => {
-    const [walletBalance] = useState(2.3458);
-    const [isConnected, setIsConnected] = useState(true);
+    const [walletAddress, setWalletAddress] = useState<string | null>(null);
+    const [isConnected, setIsConnected] = useState(false);
     
-    const pools = [
-        {
-            id: 1,
-            name: 'Fury Cards Pool',
-            description: 'Pokemon TCG Investment Pool',
-            value: 8647.52,
-            userInvestment: 1250.00,
-            investors: 47,
-            daysActive: 42,
-            performance: '+12.5%',
-            isPositive: true,
-            gradient: 'from-orange-500 to-red-600'
-        },
-        {
-            id: 2,
-            name: 'Mystic Collectibles',
-            description: 'Yu-Gi-Oh! & Magic Cards',
-            value: 15420.83,
-            userInvestment: 850.00,
-            investors: 73,
-            daysActive: 28,
-            performance: '+8.2%',
-            isPositive: true,
-            gradient: 'from-blue-500 to-purple-600'
-        },
-        {
-            id: 3,
-            name: 'Vintage Sports',
-            description: 'Baseball & Basketball Cards',
-            value: 5234.67,
-            userInvestment: 400.00,
-            investors: 29,
-            daysActive: 15,
-            performance: '-3.1%',
-            isPositive: false,
-            gradient: 'from-green-500 to-teal-600'
-        }
-    ];
+    const { dashboardData, pools, userSummary, loading, error, refetch } = useDashboard(walletAddress);
+    const { balance: walletBalance } = useWalletBalance(walletAddress);
+    const formattedPools = useFormattedPools(pools);
 
-    const totalInvestment = pools.reduce((sum, pool) => sum + pool.userInvestment, 0);
-    const totalPoolValue = pools.reduce((sum, pool) => sum + pool.value, 0);
+    // Simular conexión de wallet (en producción esto vendría de Web3)
+    useEffect(() => {
+        // Mock wallet connection - en producción esto se manejaría con Web3Modal
+        const mockWalletAddress = "0x1234567890123456789012345678901234567890";
+        setWalletAddress(mockWalletAddress);
+        setIsConnected(true);
+    }, []);
 
     const handleDisconnect = () => {
         setIsConnected(false);
+        setWalletAddress(null);
     };
+
+    const handleRefresh = () => {
+        refetch();
+    };
+
+    // Calcular totales desde los datos reales
+    const totalInvestment = userSummary?.total_investment || 0;
+    const totalPoolValue = pools.reduce((sum, pool) => sum + (pool.current_amount || 0), 0);
 
     if (!isConnected) {
         return (
@@ -70,7 +53,10 @@ const Dashboard = () => {
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Wallet Disconnected</h2>
                     <p className="text-sm sm:text-base text-gray-600 mb-6">Please reconnect to continue.</p>
                     <button
-                        onClick={() => setIsConnected(true)}
+                        onClick={() => {
+                            setIsConnected(true);
+                            setWalletAddress("0x1234567890123456789012345678901234567890");
+                        }}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 text-sm sm:text-base"
                     >
                         Reconnect Wallet
@@ -78,6 +64,14 @@ const Dashboard = () => {
                 </div>
             </div>
         );
+    }
+
+    if (loading) {
+        return <Loading message="Loading dashboard..." />;
+    }
+
+    if (error) {
+        return <ErrorDisplay error={error} onRetry={handleRefresh} />;
     }
 
     return (
@@ -92,13 +86,23 @@ const Dashboard = () => {
                             </div>
                             <h1 className="text-lg sm:text-xl font-bold text-gray-900">WrapSell</h1>
                         </div>
-                        <button
-                            onClick={handleDisconnect}
-                            className="flex items-center space-x-2 text-red-600 hover:bg-red-50 px-2 sm:px-3 py-2 rounded-lg"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            <span className="text-sm sm:text-base">Disconnect</span>
-                        </button>
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={handleRefresh}
+                                className="flex items-center space-x-2 text-blue-600 hover:bg-blue-50 px-2 sm:px-3 py-2 rounded-lg"
+                                disabled={loading}
+                            >
+                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                <span className="text-sm sm:text-base">Refresh</span>
+                            </button>
+                            <button
+                                onClick={handleDisconnect}
+                                className="flex items-center space-x-2 text-red-600 hover:bg-red-50 px-2 sm:px-3 py-2 rounded-lg"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                <span className="text-sm sm:text-base">Disconnect</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -133,7 +137,7 @@ const Dashboard = () => {
                             <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                             <span className="text-xs sm:text-sm text-gray-600">Active Pools</span>
                         </div>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900">{pools.length}</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900">{formattedPools.length}</p>
                     </div>
 
                     <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
@@ -147,7 +151,7 @@ const Dashboard = () => {
 
                 {/* Pools Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 sm:mb-8">
-                    {pools.map((pool) => (
+                    {formattedPools.map((pool) => (
                         <div key={pool.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                             <div className={`bg-gradient-to-r ${pool.gradient} p-4 text-white`}>
                                 <div className="flex items-center justify-between mb-2">
@@ -193,29 +197,33 @@ const Dashboard = () => {
                         <h3 className="text-base sm:text-lg font-semibold text-gray-900">Recent Activity</h3>
                     </div>
                     <div className="p-4 sm:p-6">
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                                <div>
-                                    <p className="font-medium text-gray-900 text-sm sm:text-base">Charizard VMAX purchased - Fury Cards Pool</p>
-                                    <p className="text-xs sm:text-sm text-gray-600">2 hours ago</p>
-                                </div>
-                                <span className="text-green-600 font-semibold text-sm sm:text-base">+$2,450</span>
+                        {userSummary?.recent_activity && userSummary.recent_activity.length > 0 ? (
+                            <div className="space-y-4">
+                                {userSummary.recent_activity.map((activity, index) => (
+                                    <div key={activity.id || index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                        <div>
+                                            <p className="font-medium text-gray-900 text-sm sm:text-base">{activity.description}</p>
+                                            <p className="text-xs sm:text-sm text-gray-600">
+                                                {new Date(activity.timestamp).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <span className={`font-semibold text-sm sm:text-base ${
+                                            activity.amount > 0 ? 'text-green-600' : 'text-red-600'
+                                        }`}>
+                                            {activity.amount > 0 ? '+' : ''}${Math.abs(activity.amount).toLocaleString()}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                                <div>
-                                    <p className="font-medium text-gray-900 text-sm sm:text-base">Black Lotus sold - Mystic Collectibles</p>
-                                    <p className="text-xs sm:text-sm text-gray-600">6 hours ago</p>
+                        ) : (
+                            <div className="text-center py-8">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Calendar className="w-8 h-8 text-gray-400" />
                                 </div>
-                                <span className="text-blue-600 font-semibold text-sm sm:text-base">+$8,200</span>
+                                <p className="text-gray-600 mb-2">No recent activity</p>
+                                <p className="text-sm text-gray-500">Your investment activity will appear here</p>
                             </div>
-                            <div className="flex items-center justify-between py-3">
-                                <div>
-                                    <p className="font-medium text-gray-900 text-sm sm:text-base">New investor joined - Vintage Sports</p>
-                                    <p className="text-xs sm:text-sm text-gray-600">1 day ago</p>
-                                </div>
-                                <span className="text-purple-600 font-semibold text-sm sm:text-base">+$500</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
