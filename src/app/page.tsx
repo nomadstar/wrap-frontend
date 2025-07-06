@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  User,
 } from "lucide-react";
 import { useAppKit } from "@reown/appkit/react";
 import {
@@ -20,6 +21,8 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { useRouter } from "next/navigation"; // Para Next.js 13+
+import { apiService } from "@/services/api";
+import UserCreationStatus from "@/components/ui/UserCreationStatus";
 
 const SIMPLE_STORAGE_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_SIMPLE_STORAGE_CONTRACT_ADDRESS;
@@ -101,11 +104,10 @@ const Navbar = () => {
 
       {/* Mobile Menu Dropdown */}
       <div
-        className={`md:hidden absolute top-full left-0 right-0 bg-slate-800 shadow-2xl border-t border-slate-700 transition-all duration-300 ease-in-out ${
-          isMenuOpen
+        className={`md:hidden absolute top-full left-0 right-0 bg-slate-800 shadow-2xl border-t border-slate-700 transition-all duration-300 ease-in-out ${isMenuOpen
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 -translate-y-2 pointer-events-none"
-        }`}
+          }`}
       >
         <div className="px-4 py-4 space-y-3">
           <a
@@ -225,6 +227,9 @@ function WrapSellApp() {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [userCreated, setUserCreated] = useState(false);
+  const [userCreationError, setUserCreationError] = useState<string | null>(null);
 
   // Read contract value
   const {
@@ -264,21 +269,98 @@ function WrapSellApp() {
     setTimeout(() => setMessage(""), 5000);
   };
 
-  // Efecto para redirigir cuando se conecte la billetera
-  useEffect(() => {
-    if (isConnected && address && !isRedirecting) {
-      setIsRedirecting(true);
+  // Función para crear usuario automáticamente
+  const createUserAutomatically = async (walletAddress: string) => {
+    if (userCreated || isCreatingUser) return;
+
+    setIsCreatingUser(true);
+    setUserCreationError(null);
+    showMessage("🔄 Creating user account...", "info");
+
+    try {
+      // Primero intentar obtener el usuario existente
+      try {
+        const existingUser = await apiService.getUser(walletAddress);
+        if (existingUser) {
+          setUserCreated(true);
+          showMessage("✅ User account found!", "success");
+          return;
+        }
+      } catch (error) {
+        // Usuario no existe, lo creamos
+        console.log("User doesn't exist, creating new user...");
+      }
+
+      // Crear nuevo usuario
+      const userData = {
+        wallet_address: walletAddress,
+        wallet_type: "ethereum", // Detectar automáticamente si es necesario
+        username: `User_${walletAddress.slice(0, 8)}`, // Username basado en la wallet
+        email: undefined, // Opcional
+      };
+
+      console.log("Creating user with data:", userData);
+      const newUser = await apiService.createUser(userData);
+      setUserCreated(true);
       showMessage(
-        "🎉 Wallet connected! Redirecting to dashboard...",
+        "🎉 User account created successfully!",
         "success"
       );
 
-      // Pequeño delay para mostrar el mensaje antes de redirigir
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
+      console.log("User created:", newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      let errorMessage = "Unknown error creating user account";
+
+      if (error instanceof Error) {
+        if (error.message.includes("Usuario ya existe")) {
+          setUserCreated(true);
+          showMessage("✅ User account already exists!", "success");
+          return;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      setUserCreationError(errorMessage);
+      showMessage(
+        `❌ Error creating user: ${errorMessage}`,
+        "error"
+      );
+    } finally {
+      setIsCreatingUser(false);
     }
-  }, [isConnected, address, router, isRedirecting]);
+  };
+
+  // Efecto para crear usuario y redirigir cuando se conecte la billetera
+  useEffect(() => {
+    if (isConnected && address && !isRedirecting) {
+      // Primero crear el usuario automáticamente
+      createUserAutomatically(address).then(() => {
+        setIsRedirecting(true);
+        showMessage(
+          "🎉 Wallet connected! Redirecting to dashboard...",
+          "success"
+        );
+
+        // Pequeño delay para mostrar el mensaje antes de redirigir
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2000); // Aumentado a 2 segundos para dar tiempo a la creación del usuario
+      });
+    }
+  }, [isConnected, address, router, isRedirecting, userCreated]);
+
+  // Efecto para resetear estados cuando se desconecte la wallet
+  useEffect(() => {
+    if (!isConnected) {
+      setIsRedirecting(false);
+      setIsCreatingUser(false);
+      setUserCreated(false);
+      setUserCreationError(null);
+      setMessage("");
+    }
+  }, [isConnected]);
 
   // Handle transaction success
   useEffect(() => {
@@ -323,6 +405,10 @@ function WrapSellApp() {
 
   const handleDisconnect = () => {
     setIsRedirecting(false); // Reset redirection flag
+    setIsCreatingUser(false); // Reset user creation flag
+    setUserCreated(false); // Reset user created flag
+    setUserCreationError(null); // Reset user creation error
+    setMessage(""); // Clear any messages
     open();
   };
 
@@ -388,19 +474,14 @@ function WrapSellApp() {
 
             {isConnected ? (
               <div className="space-y-8">
-                {isRedirecting ? (
-                  // Mostrar estado de redirección
-                  <div className="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
-                    <div className="flex items-center justify-center mb-3">
-                      <RefreshCw className="w-6 h-6 text-green-600 mr-2 animate-spin" />
-                      <span className="font-semibold text-green-800">
-                        Redirecting to Dashboard...
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Please wait while we redirect you to your dashboard.
-                    </p>
-                  </div>
+                {(isCreatingUser || userCreated || isRedirecting || userCreationError) ? (
+                  // Mostrar estado de creación de usuario y redirección
+                  <UserCreationStatus
+                    isCreatingUser={isCreatingUser}
+                    userCreated={userCreated}
+                    isRedirecting={isRedirecting}
+                    error={userCreationError || undefined}
+                  />
                 ) : (
                   <>
                     {/* Wallet Info */}
@@ -425,9 +506,8 @@ function WrapSellApp() {
                           disabled={isReading}
                         >
                           <RefreshCw
-                            className={`w-5 h-5 ${
-                              isReading ? "animate-spin" : ""
-                            }`}
+                            className={`w-5 h-5 ${isReading ? "animate-spin" : ""
+                              }`}
                           />
                           <span>{isReading ? "Reading..." : "Read Value"}</span>
                         </button>
@@ -463,16 +543,15 @@ function WrapSellApp() {
                         disabled={isWriting || isConfirming}
                       >
                         <Database
-                          className={`w-5 h-5 ${
-                            isWriting || isConfirming ? "animate-pulse" : ""
-                          }`}
+                          className={`w-5 h-5 ${isWriting || isConfirming ? "animate-pulse" : ""
+                            }`}
                         />
                         <span>
                           {isWriting
                             ? "Sending Transaction..."
                             : isConfirming
-                            ? "Confirming..."
-                            : "Write Value"}
+                              ? "Confirming..."
+                              : "Write Value"}
                         </span>
                       </button>
                     </div>
