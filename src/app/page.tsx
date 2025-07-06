@@ -23,7 +23,6 @@ import {
 import { useRouter } from "next/navigation"; // Para Next.js 13+
 import { apiService } from "@/services/api";
 import UserCreationStatus from "@/components/ui/UserCreationStatus";
-import { UserProfile } from "@/components/UserProfile";
 
 const SIMPLE_STORAGE_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_SIMPLE_STORAGE_CONTRACT_ADDRESS;
@@ -453,19 +452,6 @@ function WrapSellApp() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar />
       <Hero />
-
-      {/* User Profile Section */}
-      <section className="max-w-4xl mx-auto p-6 pt-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Estado de Usuario
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Conecta tu wallet para acceder automáticamente al sistema
-          </p>
-        </div>
-        <UserProfile />
-      </section>
 
       <main className="max-w-4xl mx-auto p-6 py-12">
         <div className="text-center mb-12">
