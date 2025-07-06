@@ -1,154 +1,253 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useAccount } from 'wagmi';
 import Loading from '../../components/webcomponents/loading';
-import Sidebar from '../../components/webcomponents/sidebar';
 import Dashboard from './dashboard';
 import StatsWidget from './statswidget';
 import Card from './card';
+import { poolsService, WrapPool, WrapSell, TCGCardData } from '../../services/poolsService';
 
-// Mock data for demonstration
-const mockPriceHistory = [
-	{ date: '2024-01-01', value: 1250 },
-	{ date: '2024-01-02', value: 1300 },
-	{ date: '2024-01-03', value: 1280 },
-	{ date: '2024-01-04', value: 1350 },
-	{ date: '2024-01-05', value: 1400 },
-	{ date: '2024-01-06', value: 1380 },
-	{ date: '2024-01-07', value: 1420 },
-];
-
-const mockCards = [
-	{
-		id: '1',
-		name: 'Black Lotus',
-		value: 25000,
-		image: 'https://images.pokemontcg.io/base1/4_hires.png',
-	},
-	{
-		id: '2',
-		name: 'Ancestral Recall',
-		value: 8500,
-		image: 'https://images.pokemontcg.io/base1/6_hires.png',
-	},
-	{
-		id: '3',
-		name: 'Time Walk',
-		value: 3200,
-		image: 'https://images.pokemontcg.io/base1/8_hires.png',
-	},
-	{
-		id: '4',
-		name: 'Mox Pearl',
-		value: 1500,
-		image: 'https://images.pokemontcg.io/base1/16_hires.png',
-	},
-	{
-		id: '5',
-		name: 'Lightning Bolt',
-		value: 45,
-		image: 'https://images.pokemontcg.io/base1/24_hires.png',
-	},
-	{
-		id: '6',
-		name: 'Giant Growth',
-		value: 12,
-		image: 'https://images.pokemontcg.io/base1/37_hires.png',
-	},
-];
-
-const mockTCGCards = [
-	{
-		id: '1',
-		name: 'Black Lotus',
-		imageUrl: 'https://images.pokemontcg.io/base1/4_hires.png',
-		tcgName: 'Magic: The Gathering',
-		marketValue: 25000,
-		rarity: 'Rare',
-		condition: 'Near Mint',
-		set: 'Alpha',
-		priceHistory: mockPriceHistory,
-	},
-	{
-		id: '2',
-		name: 'Ancestral Recall',
-		imageUrl: 'https://images.pokemontcg.io/base1/6_hires.png',
-		tcgName: 'Magic: The Gathering',
-		marketValue: 8500,
-		rarity: 'Rare',
-		condition: 'Lightly Played',
-		set: 'Alpha',
-		priceHistory: mockPriceHistory.map((p) => ({ ...p, value: p.value * 0.34 })),
-	},
-	{
-		id: '3',
-		name: 'Time Walk',
-		imageUrl: 'https://images.pokemontcg.io/base1/8_hires.png',
-		tcgName: 'Magic: The Gathering',
-		marketValue: 3200,
-		rarity: 'Rare',
-		condition: 'Near Mint',
-		set: 'Alpha',
-		priceHistory: mockPriceHistory.map((p) => ({ ...p, value: p.value * 0.26 })),
-	},
-];
+interface CardData {
+	id: string;
+	name: string;
+	value: number;
+	image: string;
+}
 
 const WrapPoolPage = () => {
-	const [activeView, setActiveView] = useState<'dashboard' | 'pool' | 'cards'>('dashboard');
+	const searchParams = useSearchParams();
+	const { address } = useAccount();
+	const viewParam = searchParams.get('view') || 'dashboard';
+	const poolParam = searchParams.get('pool') || null;
+
+	const [activeView, setActiveView] = useState<string>(viewParam);
 	const [isLoading, setIsLoading] = useState(true);
+	const [wrapPools, setWrapPools] = useState<WrapPool[]>([]);
+	const [currentPoolData, setCurrentPoolData] = useState<any>(null);
+	const [error, setError] = useState<string>('');
 
+	// Cargar datos de pools
 	useEffect(() => {
-		// Simulate loading time
-		const timer = setTimeout(() => {
-			setIsLoading(false);
-		}, 2000);
+		const loadData = async () => {
+			try {
+				setIsLoading(true);
+				const pools = await poolsService.getWrapPools();
+				setWrapPools(pools);
 
-		return () => clearTimeout(timer);
-	}, []);
+				// Cargar datos del pool seleccionado o el primero disponible
+				const targetPool = poolParam || (pools.length > 0 ? pools[0].contract_address : null);
+				if (targetPool) {
+					const poolStats = await poolsService.getPoolStats(targetPool);
+					setCurrentPoolData(poolStats);
+				}
+
+			} catch (err) {
+				setError('Error al cargar datos de pools');
+				console.error('Error loading data:', err);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		loadData();
+	}, [poolParam]);
+
+	// Actualizar vista cuando cambie el parámetro de URL
+	useEffect(() => {
+		if (viewParam !== activeView) {
+			setActiveView(viewParam);
+		}
+	}, [viewParam, activeView]);
 
 	if (isLoading) {
 		return <Loading />;
 	}
 
+	if (error) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-center">
+					<h2 className="text-2xl font-bold text-gray-800 mb-4">Error al cargar datos</h2>
+					<p className="text-gray-600 mb-4">{error}</p>
+					<button
+						onClick={() => window.location.reload()}
+						className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+					>
+						Reintentar
+					</button>
+				</div>
+			</div>
+		);
+	}
+
+	// Generar datos para componentes
+	const generateComponentData = () => {
+		if (!currentPoolData) {
+			return {
+				cards: [],
+				tcgCards: [],
+				priceHistory: []
+			};
+		}
+
+		const { tcgCards, priceHistory } = currentPoolData;
+		const cards: CardData[] = tcgCards.map((card: TCGCardData) => ({
+			id: card.id,
+			name: card.name,
+			value: card.marketValue,
+			image: card.imageUrl
+		}));
+
+		return {
+			cards,
+			tcgCards,
+			priceHistory: priceHistory || []
+		};
+	};
+
+	const { cards, tcgCards, priceHistory } = generateComponentData();
+
+	// Renderizar contenido principal según la vista activa
 	const renderMainContent = () => {
 		switch (activeView) {
 			case 'dashboard':
 				return <Dashboard />;
-			case 'pool':
+
+			case 'statswidget':
+				if (!currentPoolData) {
+					return <div className="p-6">Cargando datos del pool...</div>;
+				}
+
 				return (
 					<div className="p-6">
 						<StatsWidget
-							poolValue={38257}
-							priceHistory={mockPriceHistory}
-							highestValueCard={mockCards[0]}
-							lowestValueCard={mockCards[5]}
-							tcgName="Magic: The Gathering"
+							poolValue={currentPoolData.totalValue || 0}
+							priceHistory={priceHistory}
+							highestValueCard={currentPoolData.highestValueCard ? {
+								id: currentPoolData.highestValueCard.id,
+								name: currentPoolData.highestValueCard.name,
+								value: currentPoolData.highestValueCard.marketValue,
+								image: currentPoolData.highestValueCard.imageUrl
+							} : (cards[0] || { id: '1', name: 'Default', value: 0, image: '' })}
+							lowestValueCard={currentPoolData.lowestValueCard ? {
+								id: currentPoolData.lowestValueCard.id,
+								name: currentPoolData.lowestValueCard.name,
+								value: currentPoolData.lowestValueCard.marketValue,
+								image: currentPoolData.lowestValueCard.imageUrl
+							} : (cards[cards.length - 1] || { id: '1', name: 'Default', value: 0, image: '' })}
+							tcgName={currentPoolData.pool?.name || "Pool de Cartas"}
 							commonTier="Premium"
-							totalCards={6}
+							totalCards={currentPoolData.totalCards || 0}
 							change24h={2.34}
-							allCards={mockCards}
+							allCards={cards}
 						/>
 					</div>
 				);
-			case 'cards':
+
+			case 'card':
 				return (
 					<div className="p-6">
-						<h1 className="text-3xl font-bold text-gray-900 mb-8">Card Collection</h1>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{mockTCGCards.map((card) => (
-								<Card key={card.id} cardData={card} />
-							))}
-						</div>
+						<h1 className="text-3xl font-bold text-gray-900 mb-8">Colección de Cartas</h1>
+						{tcgCards.length > 0 ? (
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+								{tcgCards.map((card: TCGCardData) => (
+									<Card key={card.id} cardData={card} />
+								))}
+							</div>
+						) : (
+							<div className="text-center py-12">
+								<p className="text-gray-500">No hay cartas disponibles en este pool</p>
+							</div>
+						)}
 					</div>
 				);
+
 			default:
 				return <Dashboard />;
 		}
 	};
 
+	// Información de componentes para navegación
+	const componentInfo = {
+		dashboard: { name: 'Dashboard', description: 'Vista principal con estadísticas generales' },
+		statswidget: { name: 'Stats Widget', description: 'Widget de estadísticas del pool con gráficos' },
+		card: { name: 'Cards Collection', description: 'Vista detallada de la colección de cartas' }
+	};
+
+	const renderNavigationMenu = () => {
+		return (
+			<div className="bg-white shadow-sm border-b mb-6">
+				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+					<div className="flex items-center justify-between flex-wrap gap-4">
+						<div className="flex items-center space-x-4">
+							<h1 className="text-2xl font-bold text-gray-900">My Pools</h1>
+							{currentPoolData?.pool && (
+								<div className="text-sm text-gray-600">
+									<span className="font-medium">{currentPoolData.pool.name}</span>
+									<span className="ml-2">({currentPoolData.pool.symbol})</span>
+								</div>
+							)}
+						</div>
+						<div className="flex space-x-2 sm:space-x-4">
+							{Object.entries(componentInfo).map(([key, info]) => (
+								<button
+									key={key}
+									onClick={() => {
+										setActiveView(key);
+										window.history.pushState({}, '', `?view=${key}${poolParam ? `&pool=${poolParam}` : ''}`);
+									}}
+									className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${activeView === key
+										? 'bg-blue-600 text-white'
+										: 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+										}`}
+									title={info.description}
+								>
+									{info.name}
+								</button>
+							))}
+						</div>
+					</div>
+					{componentInfo[activeView as keyof typeof componentInfo] && (
+						<p className="text-sm text-gray-600 mt-2">
+							{componentInfo[activeView as keyof typeof componentInfo].description}
+						</p>
+					)}
+
+					{/* Selector de Pool */}
+					{wrapPools.length > 1 && (
+						<div className="mt-4 pt-4 border-t">
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Seleccionar Pool:
+							</label>
+							<select
+								value={poolParam || wrapPools[0]?.contract_address || ''}
+								onChange={(e) => {
+									const newPool = e.target.value;
+									window.history.pushState({}, '', `?view=${activeView}&pool=${newPool}`);
+									window.location.reload();
+								}}
+								className="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							>
+								{wrapPools.map((pool) => (
+									<option key={pool.contract_address} value={pool.contract_address}>
+										{pool.name} ({pool.symbol})
+									</option>
+								))}
+							</select>
+						</div>
+					)}
+				</div>
+			</div>
+		);
+	};
+
 	return (
-		<div className="flex min-h-screen">
-			<Sidebar />
-			<main className="flex-1">{renderMainContent()}</main>
+		<div className="min-h-screen bg-gray-50">
+			{renderNavigationMenu()}
+			<main className="max-w-6xl mx-auto">
+				{renderMainContent()}
+			</main>
 		</div>
 	);
 };
