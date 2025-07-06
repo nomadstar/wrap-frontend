@@ -26,20 +26,42 @@ export class UserService {
       ...options.headers,
     };
 
+    console.log('🌐 Making API request:', {
+      url,
+      method: options.method || 'GET',
+      headers: { ...headers, 'X-API-Key': API_KEY ? '[REDACTED]' : 'MISSING' },
+      hasBody: !!options.body
+    });
+
     try {
       const response = await fetch(url, {
         ...options,
         headers,
       });
 
+      console.log('📡 API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url
+      });
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API Error Response:', errorData);
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ API Success Response:', data);
+      return data;
     } catch (error) {
-      console.error(`Error in API request to ${endpoint}:`, error);
+      console.error(`❌ Error in API request to ${endpoint}:`, {
+        error: error instanceof Error ? error.message : error,
+        url,
+        API_URL,
+        API_KEY_EXISTS: !!API_KEY
+      });
       throw error;
     }
   }
