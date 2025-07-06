@@ -1,6 +1,7 @@
-// hooks/useUserExample.ts
+// hooks/useUserExample.tsx
 "use client";
 
+import React from 'react';
 import { useUser, useUserData, useIsAuthenticated } from '../context/UserContext';
 
 // Ejemplo de cómo usar los hooks en diferentes componentes
