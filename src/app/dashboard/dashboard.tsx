@@ -1,10 +1,9 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
     Wallet,
     TrendingUp,
     DollarSign,
-    LogOut,
     Zap,
     Users,
     Calendar,
@@ -13,29 +12,16 @@ import {
     RefreshCw
 } from 'lucide-react';
 import { useDashboard, useWalletBalance, useFormattedPools } from '@/hooks/useDashboard';
+import { useWalletPersistence } from '@/hooks/useWalletPersistence';
 import Loading from '@/components/ui/Loading';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 
 const Dashboard = () => {
-    const [walletAddress, setWalletAddress] = useState<string | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
+    const { address, isConnected } = useWalletPersistence();
 
-    const { dashboardData, pools, userSummary, loading, error, refetch } = useDashboard(walletAddress);
-    const { balance: walletBalance } = useWalletBalance(walletAddress);
+    const { dashboardData, pools, userSummary, loading, error, refetch } = useDashboard(address || null);
+    const { balance: walletBalance } = useWalletBalance(address || null);
     const formattedPools = useFormattedPools(pools);
-
-    // Simular conexión de wallet (en producción esto vendría de Web3)
-    useEffect(() => {
-        // Mock wallet connection - en producción esto se manejaría con Web3Modal
-        const mockWalletAddress = "0x1234567890123456789012345678901234567890";
-        setWalletAddress(mockWalletAddress);
-        setIsConnected(true);
-    }, []);
-
-    const handleDisconnect = () => {
-        setIsConnected(false);
-        setWalletAddress(null);
-    };
 
     const handleRefresh = () => {
         refetch();
@@ -51,16 +37,8 @@ const Dashboard = () => {
                 <div className="bg-white rounded-2xl p-8 shadow-lg text-center max-w-md w-full">
                     <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Wallet Disconnected</h2>
-                    <p className="text-sm sm:text-base text-gray-600 mb-6">Please reconnect to continue.</p>
-                    <button
-                        onClick={() => {
-                            setIsConnected(true);
-                            setWalletAddress("0x1234567890123456789012345678901234567890");
-                        }}
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 text-sm sm:text-base"
-                    >
-                        Reconnect Wallet
-                    </button>
+                    <p className="text-sm sm:text-base text-gray-600 mb-6">Please connect your wallet to continue.</p>
+                    <p className="text-xs text-gray-500">Use the wallet button in the navigation bar to connect.</p>
                 </div>
             </div>
         );
@@ -76,37 +54,6 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm sm:text-base">W</span>
-                            </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-gray-900">WrapSell</h1>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={handleRefresh}
-                                className="flex items-center space-x-2 text-blue-600 hover:bg-blue-50 px-2 sm:px-3 py-2 rounded-lg"
-                                disabled={loading}
-                            >
-                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                                <span className="text-sm sm:text-base">Refresh</span>
-                            </button>
-                            <button
-                                onClick={handleDisconnect}
-                                className="flex items-center space-x-2 text-red-600 hover:bg-red-50 px-2 sm:px-3 py-2 rounded-lg"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                <span className="text-sm sm:text-base">Disconnect</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
                 {/* Portfolio Overview */}
                 <div className="mb-6 sm:mb-8">

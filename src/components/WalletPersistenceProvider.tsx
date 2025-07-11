@@ -1,5 +1,6 @@
 'use client';
 import { useWalletPersistence } from '../hooks/useWalletPersistence';
+import { useWalletDisconnectRedirect } from '../hooks/useWalletDisconnectRedirect';
 import { useEffect } from 'react';
 
 /**
@@ -7,7 +8,8 @@ import { useEffect } from 'react';
  * Debe estar incluido en el layout principal
  */
 export default function WalletPersistenceProvider({ children }: { children: React.ReactNode }) {
-    const { isConnected, reconnectAttempts } = useWalletPersistence();
+    const { reconnectAttempts } = useWalletPersistence();
+    const { isConnected } = useWalletDisconnectRedirect(); // Este hook maneja las redirecciones
 
     useEffect(() => {
         // Log para debugging

@@ -1,13 +1,10 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDisconnect } from 'wagmi';
-import { useAccount } from 'wagmi';
 import { 
     Wallet, 
     TrendingUp, 
-    DollarSign, 
-    LogOut,
+    DollarSign,
     Zap,
     Users,
     Calendar,
@@ -15,18 +12,18 @@ import {
     ChevronDown,
     ArrowLeft
 } from 'lucide-react';
+import { useWalletPersistence } from '@/hooks/useWalletPersistence';
 
 const Dashboard = () => {
     const router = useRouter();
-    const { disconnect } = useDisconnect();
-    const { isConnected } = useAccount();
+    const { isConnected } = useWalletPersistence();
     const [userInvestment] = useState(1250.00);
     const [showPoolsMenu, setShowPoolsMenu] = useState(false);
     const [selectedPool, setSelectedPool] = useState('fury-cards');
 
     const formatNumber = (num: number) => {
-    // Usar un formato consistente para evitar problemas de hidratación
-    return new Intl.NumberFormat('en-US').format(num);
+        // Usar un formato consistente para evitar problemas de hidratación
+        return new Intl.NumberFormat('en-US').format(num);
     }
 
     const pools = [
@@ -70,14 +67,6 @@ const Dashboard = () => {
 
     const currentPool = pools.find(pool => pool.id === selectedPool);
 
-    const handleDisconnect = () => {
-        // Desconectar la wallet usando Wagmi
-        disconnect();
-        
-        // Redirigir a la página inicial
-        router.push('/');
-    };
-
     const handlePoolSelect = (poolId: string) => {
         setSelectedPool(poolId);
         setShowPoolsMenu(false);
@@ -89,13 +78,8 @@ const Dashboard = () => {
                 <div className="bg-white rounded-2xl p-8 shadow-lg text-center max-w-md w-full">
                     <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Wallet Disconnected</h2>
-                    <p className="text-sm sm:text-base text-gray-600 mb-6">Please reconnect to continue.</p>
-                    <button
-                        onClick={() => router.push('/')}
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 text-sm sm:text-base"
-                    >
-                        Reconnect Wallet
-                    </button>
+                    <p className="text-sm sm:text-base text-gray-600 mb-6">Please connect your wallet to continue.</p>
+                    <p className="text-xs text-gray-500">Use the wallet button in the navigation bar to connect.</p>
                 </div>
             </div>
         );
@@ -104,34 +88,17 @@ const Dashboard = () => {
     if (showPoolsMenu) {
         return (
             <div className="min-h-screen bg-gray-50">
-                {/* Header */}
-                <header className="bg-white shadow-sm border-b">
-                    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center space-x-3">
-                                <button
-                                    onClick={() => setShowPoolsMenu(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ArrowLeft className="w-5 h-5 text-gray-600" />
-                                </button>
-                                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold text-sm sm:text-base">W</span>
-                                </div>
-                                <h1 className="text-lg sm:text-xl font-bold text-gray-900">All Pools</h1>
-                            </div>
-                            <button
-                                onClick={handleDisconnect}
-                                className="flex items-center space-x-2 text-red-600 hover:bg-red-50 px-2 sm:px-3 py-2 rounded-lg"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                <span className="text-sm sm:text-base">Disconnect</span>
-                            </button>
-                        </div>
-                    </div>
-                </header>
-
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                    <div className="flex items-center space-x-3 mb-6">
+                        <button
+                            onClick={() => setShowPoolsMenu(false)}
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <h1 className="text-lg sm:text-xl font-bold text-gray-900">All Pools</h1>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {pools.map((pool) => {
                             const IconComponent = pool.icon;
@@ -139,23 +106,23 @@ const Dashboard = () => {
                                 <div
                                     key={pool.id}
                                     onClick={() => handlePoolSelect(pool.id)}
-                                    className="cursor-pointer transform hover:scale-105 transition-transform"
+                                    className="bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all"
                                 >
-                                    <div className={`bg-gradient-to-r ${pool.gradient} rounded-xl p-6 text-white mb-4`}>
+                                    <div className={`bg-gradient-to-r ${pool.gradient} p-4 rounded-t-xl text-white`}>
                                         <div className="flex items-center space-x-3 mb-2">
-                                            <IconComponent className="w-8 h-8" />
-                                            <h3 className="text-xl font-bold">{pool.name}</h3>
+                                            <IconComponent className="w-6 h-6" />
+                                            <h3 className="font-bold text-lg">{pool.name}</h3>
                                         </div>
-                                        <p className="text-white/80 mb-4">{pool.description}</p>
+                                        <p className="text-white/80 text-sm">{pool.description}</p>
+                                    </div>
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-gray-600 text-sm">Pool Value</span>
+                                            <span className="font-semibold">${formatNumber(pool.value)}</span>
+                                        </div>
                                         <div className="flex justify-between items-center">
-                                            <div>
-                                                <p className="text-sm text-white/80">Pool Value</p>
-                                                <p className="text-2xl font-bold">${formatNumber(pool.value)}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm text-white/80">Investors</p>
-                                                <p className="text-2xl font-bold">{pool.investors}</p>
-                                            </div>
+                                            <span className="text-gray-600 text-sm">Investors</span>
+                                            <span className="font-medium">{pool.investors}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -169,43 +136,22 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm sm:text-base">W</span>
-                            </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-gray-900">WrapSell</h1>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={() => setShowPoolsMenu(true)}
-                                className="flex items-center space-x-2 bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-lg"
-                            >
-                                <Grid3X3 className="w-4 h-4" />
-                                <span className="text-sm sm:text-base">All Pools</span>
-                                <ChevronDown className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={handleDisconnect}
-                                className="flex items-center space-x-2 text-red-600 hover:bg-red-50 px-2 sm:px-3 py-2 rounded-lg"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                <span className="text-sm sm:text-base">Disconnect</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
                 {/* Pool Header */}
                 <div className={`bg-gradient-to-r ${currentPool?.gradient} rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 text-white`}>
-                    <div className="flex items-center space-x-3 mb-2">
-                        {currentPool?.icon && <currentPool.icon className="w-6 h-6 sm:w-8 sm:h-8" />}
-                        <h2 className="text-xl sm:text-2xl font-bold">{currentPool?.name}</h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                            {currentPool?.icon && <currentPool.icon className="w-6 h-6 sm:w-8 sm:h-8" />}
+                            <h2 className="text-xl sm:text-2xl font-bold">{currentPool?.name}</h2>
+                        </div>
+                        <button
+                            onClick={() => setShowPoolsMenu(true)}
+                            className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition-colors"
+                        >
+                            <Grid3X3 className="w-4 h-4" />
+                            <span className="text-sm">All Pools</span>
+                            <ChevronDown className="w-4 h-4" />
+                        </button>
                     </div>
                     <p className="text-white/80 text-sm sm:text-base">{currentPool?.description}</p>
                 </div>
@@ -233,7 +179,7 @@ const Dashboard = () => {
                             <Users className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                             <span className="text-xs sm:text-sm text-gray-600">Investors</span>
                         </div>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900">{currentPool?.investors}</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900">{currentPool?.investors || 0}</p>
                     </div>
 
                     <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
@@ -241,38 +187,83 @@ const Dashboard = () => {
                             <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                             <span className="text-xs sm:text-sm text-gray-600">Days Active</span>
                         </div>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900">42</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900">127</p>
                     </div>
                 </div>
 
-                {/* Recent Activity */}
+                {/* Investment Actions */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 sm:mb-8">
+                    <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Invest</h3>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-3 gap-2">
+                                {[100, 250, 500].map(amount => (
+                                    <button
+                                        key={amount}
+                                        className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm font-medium"
+                                    >
+                                        ${amount}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex space-x-2">
+                                <input
+                                    type="number"
+                                    placeholder="Custom amount"
+                                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                />
+                                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+                                    Invest
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Your Position</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600 text-sm">Total Invested</span>
+                                <span className="font-medium">${formatNumber(userInvestment)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600 text-sm">Current Value</span>
+                                <span className="font-medium text-green-600">${formatNumber(userInvestment * 1.15)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600 text-sm">Profit/Loss</span>
+                                <span className="font-medium text-green-600">+${formatNumber(userInvestment * 0.15)} (+15%)</span>
+                            </div>
+                            <button className="w-full bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-medium mt-3">
+                                Withdraw
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Recent Transactions */}
                 <div className="bg-white rounded-xl shadow-sm">
                     <div className="p-4 sm:p-6 border-b">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Recent Activity</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Recent Transactions</h3>
                     </div>
                     <div className="p-4 sm:p-6">
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                                <div>
-                                    <p className="font-medium text-gray-900 text-sm sm:text-base">Rare card purchased</p>
-                                    <p className="text-xs sm:text-sm text-gray-600">2 hours ago</p>
+                            {[
+                                { type: 'Investment', amount: 500, date: '2024-01-15', status: 'Completed' },
+                                { type: 'Investment', amount: 250, date: '2024-01-10', status: 'Completed' },
+                                { type: 'Investment', amount: 500, date: '2024-01-05', status: 'Completed' },
+                            ].map((transaction, index) => (
+                                <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                    <div>
+                                        <p className="font-medium text-gray-900 text-sm sm:text-base">{transaction.type}</p>
+                                        <p className="text-xs sm:text-sm text-gray-600">{transaction.date}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold text-gray-900 text-sm sm:text-base">${formatNumber(transaction.amount)}</p>
+                                        <p className="text-xs sm:text-sm text-green-600">{transaction.status}</p>
+                                    </div>
                                 </div>
-                                <span className="text-green-600 font-semibold text-sm sm:text-base">+$2,450</span>
-                            </div>
-                            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                                <div>
-                                    <p className="font-medium text-gray-900 text-sm sm:text-base">Card sold at profit</p>
-                                    <p className="text-xs sm:text-sm text-gray-600">1 day ago</p>
-                                </div>
-                                <span className="text-blue-600 font-semibold text-sm sm:text-base">+$680</span>
-                            </div>
-                            <div className="flex items-center justify-between py-3">
-                                <div>
-                                    <p className="font-medium text-gray-900 text-sm sm:text-base">New investor joined</p>
-                                    <p className="text-xs sm:text-sm text-gray-600">3 days ago</p>
-                                </div>
-                                <span className="text-purple-600 font-semibold text-sm sm:text-base">+$500</span>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>

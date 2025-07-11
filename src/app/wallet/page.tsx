@@ -43,7 +43,8 @@ export default function WalletPage() {
         setIsLoading(true);
         try {
             await disconnect();
-            router.push('/');
+            // Opcional: mostrar mensaje de confirmación en lugar de redirigir
+            console.log('Wallet disconnected successfully');
         } catch (error) {
             console.error('Error disconnecting:', error);
         } finally {
