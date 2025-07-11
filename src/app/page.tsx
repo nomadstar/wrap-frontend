@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Wallet,
-  Database,
+  HardDrive,
   Zap,
   RefreshCw,
   CheckCircle,
@@ -164,7 +164,7 @@ const Hero = () => {
           </p>
           <div className="mt-8 flex justify-center space-x-4">
             <div className="flex items-center space-x-2 bg-white/10 rounded-full px-4 py-2">
-              <Database className="w-5 h-5" />
+              <HardDrive className="w-5 h-5" />
               <span className="text-sm font-medium">TCG Marketplace</span>
             </div>
             <div className="flex items-center space-x-2 bg-white/10 rounded-full px-4 py-2">
@@ -337,30 +337,26 @@ function WrapSellApp() {
     if (isConnected && address && !isRedirecting) {
       // Primero crear el usuario automáticamente
       createUserAutomatically(address).then(() => {
-        setIsRedirecting(true);
-        showMessage(
-          "🎉 Wallet connected! Redirecting to dashboard...",
-          "success"
-        );
+        // Solo redirigir si el usuario fue creado exitosamente
+        if (userCreated || !userCreationError) {
+          setIsRedirecting(true);
+          showMessage(
+            "🎉 Wallet connected! Redirecting to dashboard...",
+            "success"
+          );
 
-        // Pequeño delay para mostrar el mensaje antes de redirigir
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 2000); // Aumentado a 2 segundos para dar tiempo a la creación del usuario
+          // Pequeño delay para mostrar el mensaje antes de redirigir
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 2000);
+        }
       });
     }
-  }, [isConnected, address, router, isRedirecting, userCreated]);
+  }, [isConnected, address, router, isRedirecting, userCreated, userCreationError]);
 
   // Efecto para resetear estados cuando se desconecte la wallet
-  useEffect(() => {
-    if (!isConnected) {
-      setIsRedirecting(false);
-      setIsCreatingUser(false);
-      setUserCreated(false);
-      setUserCreationError(null);
-      setMessage("");
-    }
-  }, [isConnected]);
+  // NOTA: No reseteamos cuando se desconecta porque queremos mantener la conexión
+  // El WalletGuard se encargará de redirigir si es necesario
 
   // Handle transaction success
   useEffect(() => {
@@ -403,12 +399,9 @@ function WrapSellApp() {
     open();
   };
 
-  const handleDisconnect = () => {
-    setIsRedirecting(false); // Reset redirection flag
-    setIsCreatingUser(false); // Reset user creation flag
-    setUserCreated(false); // Reset user created flag
-    setUserCreationError(null); // Reset user creation error
-    setMessage(""); // Clear any messages
+  const handleDisconnect = async () => {
+    // Solo abrir el modal de AppKit para gestión de wallet
+    // No desconectar realmente ya que queremos mantener la conexión
     open();
   };
 
@@ -540,7 +533,7 @@ function WrapSellApp() {
                         className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none"
                         disabled={isWriting || isConfirming}
                       >
-                        <Database
+                        <HardDrive
                           className={`w-5 h-5 ${isWriting || isConfirming ? "animate-pulse" : ""
                             }`}
                         />
@@ -554,13 +547,13 @@ function WrapSellApp() {
                       </button>
                     </div>
 
-                    {/* Disconnect */}
+                    {/* Wallet Management */}
                     <button
                       onClick={handleDisconnect}
                       className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
                     >
-                      <LogOut className="w-5 h-5" />
-                      <span>Disconnect Wallet</span>
+                      <User className="w-5 h-5" />
+                      <span>Manage Wallet</span>
                     </button>
                   </>
                 )}
@@ -592,7 +585,7 @@ function WrapSellApp() {
         {/* Features Section */}
         <div className="mt-16 grid md:grid-cols-3 gap-8">
           <div className="text-center p-6 bg-white rounded-2xl shadow-lg">
-            <Database className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+            <HardDrive className="w-12 h-12 text-blue-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">TCG Marketplace</h3>
             <p className="text-gray-600">
               Buy, sell, and discover your favorite TCG cards
