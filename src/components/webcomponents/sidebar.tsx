@@ -66,8 +66,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="/settings" className="block p-2 rounded hover:bg-gray-700">
-                                                Settings
+                                            <a href="/wallet" className="block p-2 rounded hover:bg-gray-700">
+                                                Wallet
                                             </a>
                                         </li>
                                     </ul>
