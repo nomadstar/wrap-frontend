@@ -7,8 +7,9 @@ import { useWalletRedirect } from '../../hooks/useWalletRedirect';
 import { poolsService, WrapPool } from '../../services/poolsService';
 import { fetchReownWallet } from '../api';
 
-// Backend API URL
+// Backend API URL y API KEY
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://wrapsell-backend-e9c344d91fb8.herokuapp.com';
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
 
 interface Card {
     id: number;
@@ -102,6 +103,7 @@ const AdminPage = () => {
         }
     }, [address]);
 
+
     // Fetch cards from backend
     const fetchCards = async (): Promise<Card[]> => {
         try {
@@ -109,6 +111,7 @@ const AdminPage = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-API-KEY': API_KEY,
                 },
             });
 
@@ -123,6 +126,7 @@ const AdminPage = () => {
         }
     };
 
+
     // Fetch WrapSell contracts from backend
     const fetchWrapSellContracts = async (): Promise<WrapSellContract[]> => {
         try {
@@ -130,6 +134,7 @@ const AdminPage = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-API-KEY': API_KEY,
                 },
             });
 
@@ -179,10 +184,12 @@ const AdminPage = () => {
                 pool_id: poolId ? parseInt(poolId) : null
             };
 
+
             const response = await fetch(`${API_BASE_URL}/cards_admin/add-by-url`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-API-KEY': API_KEY,
                 },
                 body: JSON.stringify(requestBody),
             });
@@ -249,10 +256,12 @@ const AdminPage = () => {
                 wrap_pool_address: wrapPoolAddress || null
             };
 
+
             const response = await fetch(`${API_BASE_URL}/contracts/wrapsell/deploy`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-API-KEY': API_KEY,
                 },
                 body: JSON.stringify(requestBody),
             });
