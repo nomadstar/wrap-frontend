@@ -92,7 +92,7 @@ export function useWalletPersistence() {
                     if (window.location.pathname !== '/') {
                         router.push('/');
                     }
-                }, 100);
+                }, 5000);
             }
         }
         
@@ -114,7 +114,7 @@ export function useWalletPersistence() {
                         reconnectAttempts.current = 0;
                     }
                 }
-            }, 3000); // 3 segundos de gracia
+            }, 5000); // 5 segundos de gracia
 
             return () => clearTimeout(timer);
         }

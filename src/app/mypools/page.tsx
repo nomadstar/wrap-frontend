@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/webcomponents/Navbar';
 import { useWalletRedirect } from '../../hooks/useWalletRedirect';
-import Loading from '../../components/webcomponents/loading';
 import { poolsService, WrapPool, WrapSell } from '../../services/poolsService';
 
 interface PoolStats {
@@ -31,7 +30,6 @@ const MyPoolsPage = () => {
 	const { address, isConnected } = useAccount();
 	const router = useRouter();
 	const { isWalletConnected } = useWalletRedirect(); // Hook para redirección automática
-	const [isLoading, setIsLoading] = useState(true);
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [wrapPools, setWrapPools] = useState<WrapPool[]>([]);
 	const [userPools, setUserPools] = useState<WrapPool[]>([]);
@@ -43,12 +41,10 @@ const MyPoolsPage = () => {
 	useEffect(() => {
 		const loadData = async () => {
 			if (!isConnected || !address) {
-				setIsLoading(false);
 				return;
 			}
 
 			try {
-				setIsLoading(true);
 
 				// Verificar si el usuario es admin
 				const adminStatus = await poolsService.checkAdminStatus(address || '');
@@ -104,8 +100,6 @@ const MyPoolsPage = () => {
 			} catch (err) {
 				console.error('Error loading pools data:', err);
 				setError('Error al cargar datos de pools');
-			} finally {
-				setIsLoading(false);
 			}
 		};
 
@@ -154,10 +148,6 @@ const MyPoolsPage = () => {
 				</div>
 			</div>
 		);
-	}
-
-	if (isLoading) {
-		return <Loading />;
 	}
 
 	if (error) {
