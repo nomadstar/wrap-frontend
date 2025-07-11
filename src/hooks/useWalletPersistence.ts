@@ -5,7 +5,7 @@ import { useAccount, useConnect } from 'wagmi';
 
 // Hook personalizado para mantener la conexión de wallet
 export const useWalletPersistence = () => {
-  const { isConnected, isConnecting, isReconnecting, connector } = useAccount();
+  const { isConnected, isConnecting, isReconnecting } = useAccount();
   const { connect, connectors } = useConnect();
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 3;
@@ -29,16 +29,19 @@ export const useWalletPersistence = () => {
       return;
     }
 
-    // Si no está conectado y había un conector anterior, intentar reconectar
-    if (!isConnected && connector && reconnectAttempts.current < maxReconnectAttempts) {
+    // Si no está conectado y hay conectores disponibles, intentar reconectar
+    if (!isConnected && connectors.length > 0 && reconnectAttempts.current < maxReconnectAttempts) {
       console.log(`Attempting wallet reconnection ${reconnectAttempts.current + 1}/${maxReconnectAttempts}`);
       
       reconnectTimeoutRef.current = setTimeout(() => {
         reconnectAttempts.current += 1;
         
         try {
-          // Intentar reconectar con el último conector usado
-          connect({ connector });
+          // Intentar reconectar con el primer conector disponible
+          const firstConnector = connectors[0];
+          if (firstConnector) {
+            connect({ connector: firstConnector });
+          }
         } catch (error) {
           console.error('Failed to reconnect wallet:', error);
         }
@@ -52,7 +55,7 @@ export const useWalletPersistence = () => {
         reconnectTimeoutRef.current = null;
       }
     };
-  }, [isConnected, isConnecting, isReconnecting, connector, connect]);
+  }, [isConnected, isConnecting, isReconnecting, connectors, connect]);
 
   return {
     isConnected,
