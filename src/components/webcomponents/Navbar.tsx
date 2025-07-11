@@ -29,10 +29,10 @@ const Navbar: React.FC = () => {
                     padding: 0
                 }}>
                     <li>
-                        <a 
-                            href="/" 
-                            style={{ 
-                                color: '#fff', 
+                        <a
+                            href="/"
+                            style={{
+                                color: '#fff',
                                 textDecoration: 'none',
                                 transition: 'color 0.2s',
                                 fontWeight: '500'
@@ -46,10 +46,10 @@ const Navbar: React.FC = () => {
                     {isLoggedIn && (
                         <>
                             <li>
-                                <a 
-                                    href="/dashboard" 
-                                    style={{ 
-                                        color: '#fff', 
+                                <a
+                                    href="/dashboard"
+                                    style={{
+                                        color: '#fff',
                                         textDecoration: 'none',
                                         transition: 'color 0.2s',
                                         fontWeight: '500'
@@ -61,10 +61,10 @@ const Navbar: React.FC = () => {
                                 </a>
                             </li>
                             <li>
-                                <a 
-                                    href="/mypools" 
-                                    style={{ 
-                                        color: '#fff', 
+                                <a
+                                    href="/mypools"
+                                    style={{
+                                        color: '#fff',
                                         textDecoration: 'none',
                                         transition: 'color 0.2s',
                                         fontWeight: '500'
@@ -76,10 +76,10 @@ const Navbar: React.FC = () => {
                                 </a>
                             </li>
                             <li>
-                                <a 
-                                    href="/wallet" 
-                                    style={{ 
-                                        color: '#fff', 
+                                <a
+                                    href="/wallet"
+                                    style={{
+                                        color: '#fff',
                                         textDecoration: 'none',
                                         transition: 'color 0.2s',
                                         fontWeight: '500'
@@ -93,7 +93,7 @@ const Navbar: React.FC = () => {
                         </>
                     )}
                 </ul>
-                
+
                 {/* Botón oficial de Reown AppKit */}
                 <w3m-button />
             </div>

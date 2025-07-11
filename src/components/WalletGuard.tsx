@@ -91,7 +91,7 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
             localStorage.removeItem('wrapsell_last_connection');
             router.push('/');
         }
-    }, [isConnected, reownIsConnected, pathname, router]);    useEffect(() => {
+    }, [isConnected, reownIsConnected, pathname, router]); useEffect(() => {
         // Limpiar timeout anterior si existe
         if (disconnectTimeoutRef.current) {
             clearTimeout(disconnectTimeoutRef.current);
@@ -101,7 +101,7 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
         // Si no estamos en la página principal y no hay wallet conectada
         // Redirigir inmediatamente sin delays ni buffers
         const isWalletConnected = isConnected && reownIsConnected;
-        
+
         if (pathname !== '/' && !isWalletConnected && !isConnecting && !isReconnecting) {
             console.log('Wallet not connected, redirecting to home...');
             // Limpiar todo y redirigir
