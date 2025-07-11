@@ -54,7 +54,6 @@ const AdminPage = () => {
     // Add card by URL form data
     const [addCardData, setAddCardData] = useState({
         url: '',
-        userWallet: '',
         poolId: '',
     });
 
@@ -156,10 +155,10 @@ const AdminPage = () => {
         setSuccessMessage('');
 
         try {
-            const { url, userWallet, poolId } = addCardData;
+            const { url, poolId } = addCardData;
 
-            if (!url || !userWallet) {
-                setError('URL and User Wallet are required');
+            if (!url || !address) {
+                setError('URL is required and wallet must be connected');
                 return;
             }
 
@@ -172,7 +171,7 @@ const AdminPage = () => {
             const requestBody = {
                 admin_wallet: address,
                 url: url.trim(),
-                user_wallet: userWallet.trim(),
+                user_wallet: address, // Use connected wallet
                 pool_id: poolId ? parseInt(poolId) : null
             };
 
@@ -195,7 +194,6 @@ const AdminPage = () => {
             // Reset form
             setAddCardData({
                 url: '',
-                userWallet: '',
                 poolId: '',
             });
 
@@ -354,6 +352,7 @@ const AdminPage = () => {
                             <p className="text-sm">
                                 <strong>Instructions:</strong> Provide a valid PriceCharting.com URL for a Pokémon TCG card.
                                 The system will automatically extract card data including name, edition, market value, and card ID.
+                                The card will be associated with your connected wallet: <span className="font-mono">{address?.substring(0, 6)}...{address?.substring(address.length - 4)}</span>
                             </p>
                             <p className="text-sm mt-2">
                                 <strong>Example:</strong> https://www.pricecharting.com/game/pokemon-base-set/charizard-4
@@ -361,8 +360,8 @@ const AdminPage = () => {
                         </div>
 
                         <form onSubmit={addCardByUrl}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="md:col-span-2">
+                            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         PriceCharting.com URL *
                                     </label>
@@ -373,21 +372,6 @@ const AdminPage = () => {
                                         onChange={handleAddCardChange}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="https://www.pricecharting.com/game/pokemon-..."
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        User Wallet Address *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="userWallet"
-                                        value={addCardData.userWallet}
-                                        onChange={handleAddCardChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="0x..."
                                         required
                                     />
                                 </div>
@@ -411,7 +395,7 @@ const AdminPage = () => {
                                     </select>
                                 </div>
 
-                                <div className="md:col-span-2">
+                                <div>
                                     <button
                                         type="submit"
                                         className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
@@ -587,7 +571,7 @@ const AdminPage = () => {
                                                 Market Value
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                User Wallet
+                                                Card Owner
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Pool
