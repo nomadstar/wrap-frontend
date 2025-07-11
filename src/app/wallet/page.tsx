@@ -16,13 +16,15 @@ import {
 } from 'lucide-react';
 import Sidebar from '../../components/webcomponents/sidebar';
 import Navbar from '../../components/webcomponents/Navbar';
+import { useWalletPersistence } from '../../hooks/useWalletPersistence';
 
 export default function WalletPage() {
-    const { address, isConnected, connector } = useAccount();
+    const { address, connector } = useAccount();
     const { isConnected: reownIsConnected } = useAppKitAccount();
     const { open } = useAppKit();
     const { disconnect } = useDisconnect();
     const router = useRouter();
+    const { isConnected } = useWalletPersistence(); // Usar nuestro hook personalizado
 
     const [copied, setCopied] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +59,7 @@ export default function WalletPage() {
         return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
     };
 
-    if (!isConnected || !reownIsConnected) {
+    if (!isConnected) {
         return (
             <div className="flex min-h-screen">
                 <Sidebar />

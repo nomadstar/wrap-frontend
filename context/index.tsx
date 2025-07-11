@@ -15,6 +15,7 @@ import {
 import React, { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 import { UserProvider } from "../src/context/UserContext";
+import WalletPersistenceProvider from "../src/components/WalletPersistenceProvider";
 
 // Set up queryClient
 const queryClient = new QueryClient();
@@ -47,7 +48,7 @@ const modal = createAppKit({
   // Configuraciones para mejorar la persistencia
   enableEIP6963: true,
   enableCoinbase: true,
-  // Optional - defaults to your Cloud configuration
+  allWallets: "SHOW",
 });
 
 function ContextProvider({
@@ -66,10 +67,13 @@ function ContextProvider({
     <WagmiProvider
       config={wagmiAdapter.wagmiConfig as Config}
       initialState={initialState}
+      reconnectOnMount={true}
     >
       <QueryClientProvider client={queryClient}>
         <UserProvider>
-          {children}
+          <WalletPersistenceProvider>
+            {children}
+          </WalletPersistenceProvider>
         </UserProvider>
       </QueryClientProvider>
     </WagmiProvider>

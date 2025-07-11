@@ -1,67 +1,97 @@
 'use client';
+import { useEffect, useCallback, useRef } from 'react';
+import { useAccount, useReconnect } from 'wagmi';
+import { useAppKitAccount } from '@reown/appkit/react';
 
-import { useEffect, useRef } from 'react';
-import { useAccount, useConnect } from 'wagmi';
+/**
+ * Hook personalizado para manejar la reconexión automática
+ * y evitar desconexiones no deseadas al navegar entre páginas
+ */
+export function useWalletPersistence() {
+    const { isConnected, address, connector } = useAccount();
+    const { isConnected: reownIsConnected } = useAppKitAccount();
+    const { reconnect, connectors } = useReconnect();
+    const reconnectAttempts = useRef(0);
+    const maxReconnectAttempts = 3;
 
-// Hook personalizado para mantener la conexión de wallet
-export const useWalletPersistence = () => {
-  const { isConnected, isConnecting, isReconnecting } = useAccount();
-  const { connect, connectors } = useConnect();
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 3;
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    // Limpiar timeout anterior
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-
-    // Si está conectado, resetear contador de intentos
-    if (isConnected) {
-      reconnectAttempts.current = 0;
-      return;
-    }
-
-    // Si está conectando o reconectando, no hacer nada
-    if (isConnecting || isReconnecting) {
-      return;
-    }
-
-    // Si no está conectado y hay conectores disponibles, intentar reconectar
-    if (!isConnected && connectors.length > 0 && reconnectAttempts.current < maxReconnectAttempts) {
-      console.log(`Attempting wallet reconnection ${reconnectAttempts.current + 1}/${maxReconnectAttempts}`);
-      
-      reconnectTimeoutRef.current = setTimeout(() => {
-        reconnectAttempts.current += 1;
-        
-        try {
-          // Intentar reconectar con el primer conector disponible
-          const firstConnector = connectors[0];
-          if (firstConnector) {
-            connect({ connector: firstConnector });
-          }
-        } catch (error) {
-          console.error('Failed to reconnect wallet:', error);
+    // Función para intentar reconectar
+    const attemptReconnect = useCallback(async () => {
+        if (reconnectAttempts.current >= maxReconnectAttempts) {
+            console.log('Máximo de intentos de reconexión alcanzado');
+            return;
         }
-      }, 1000 * reconnectAttempts.current); // Incrementar delay con cada intento
-    }
 
-    // Cleanup al desmontar
-    return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
-      }
+        try {
+            reconnectAttempts.current++;
+            
+            // Intentar reconectar con el último conector usado
+            const lastConnectorId = localStorage.getItem('lastUsedConnector');
+            const lastConnector = connectors.find(c => c.id === lastConnectorId);
+            
+            if (lastConnector) {
+                console.log(`Intentando reconectar con ${lastConnector.name}...`);
+                await reconnect({ connectors: [lastConnector] });
+            } else if (connectors.length > 0) {
+                // Si no hay conector guardado, usar el primero disponible
+                await reconnect({ connectors: [connectors[0]] });
+            }
+        } catch (error) {
+            console.log('Error en reconexión automática:', error);
+        }
+    }, [reconnect, connectors]);
+
+    // Guardar el conector usado para reconexión futura
+    useEffect(() => {
+        if (isConnected && address && connector) {
+            localStorage.setItem('lastUsedConnector', connector.id);
+            localStorage.setItem('lastConnectedAddress', address);
+            localStorage.setItem('walletConnected', 'true');
+            reconnectAttempts.current = 0; // Reset contador al conectar exitosamente
+            console.log(`Wallet conectado: ${connector.name} - ${address}`);
+        }
+    }, [isConnected, address, connector]);
+
+    // Intentar reconectar al cargar la página si había una conexión previa
+    useEffect(() => {
+        const wasConnected = localStorage.getItem('walletConnected');
+        const lastAddress = localStorage.getItem('lastConnectedAddress');
+        
+        // Si no estamos conectados pero había una conexión previa, intentar reconectar
+        if (!isConnected && !reownIsConnected && wasConnected && lastAddress) {
+            console.log('Detectada conexión previa, intentando reconectar...');
+            const timer = setTimeout(() => {
+                attemptReconnect();
+            }, 500); // Reducir el tiempo de espera
+
+            return () => clearTimeout(timer);
+        }
+    }, [isConnected, reownIsConnected, attemptReconnect]);
+
+    // Limpiar datos solo en desconexión manual
+    useEffect(() => {
+        if (!isConnected && !reownIsConnected) {
+            // Esperar un poco antes de limpiar por si es una desconexión temporal
+            const timer = setTimeout(() => {
+                if (!isConnected && !reownIsConnected) {
+                    const wasConnected = localStorage.getItem('walletConnected');
+                    if (wasConnected && reconnectAttempts.current >= maxReconnectAttempts) {
+                        console.log('Limpiando datos de conexión después de fallos repetidos');
+                        localStorage.removeItem('lastUsedConnector');
+                        localStorage.removeItem('lastConnectedAddress');
+                        localStorage.removeItem('walletConnected');
+                        reconnectAttempts.current = 0;
+                    }
+                }
+            }, 3000); // 3 segundos de gracia
+
+            return () => clearTimeout(timer);
+        }
+    }, [isConnected, reownIsConnected]);
+
+    return {
+        isConnected: isConnected && reownIsConnected,
+        address,
+        attemptReconnect,
+        reconnectAttempts: reconnectAttempts.current
     };
-  }, [isConnected, isConnecting, isReconnecting, connectors, connect]);
-
-  return {
-    isConnected,
-    isConnecting,
-    isReconnecting,
-    reconnectAttempts: reconnectAttempts.current,
-    maxReconnectAttempts,
-  };
-};
+}

@@ -4,6 +4,7 @@ import React from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { useAccount } from 'wagmi';
 import { Wallet, User, LogOut } from 'lucide-react';
+import { useWalletPersistence } from '../../hooks/useWalletPersistence';
 
 interface WalletConnectButtonProps {
     className?: string;
@@ -19,7 +20,8 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
     size = 'md'
 }) => {
     const { open } = useAppKit();
-    const { isConnected, address } = useAccount();
+    const { address } = useAccount();
+    const { isConnected } = useWalletPersistence(); // Usar nuestro hook personalizado
 
     const getButtonStyles = () => {
         const baseStyles = 'flex items-center justify-center space-x-2 font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200';
