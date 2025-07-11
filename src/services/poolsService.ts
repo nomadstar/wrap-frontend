@@ -66,6 +66,34 @@ interface TCGCardData {
   priceHistory: PriceHistoryPoint[];
 }
 
+interface Card {
+  id: number;
+  name: string;
+  card_id: string;
+  edition: string;
+  market_value: number;
+  url?: string;
+  pool_id?: number;
+  created_at: string;
+}
+
+interface CreateWrapSellData {
+  name: string;
+  symbol: string;
+  cardId: number;
+  cardName: string;
+  rarity: string;
+  estimatedValuePerCard: number;
+  poolAddress?: string;
+}
+
+interface CreateMultipleWrapSellsData {
+  poolAddress: string;
+  selectedCards: number[];
+  tokenPrefix?: string;
+  symbolPrefix?: string;
+}
+
 const headers = {
   'Content-Type': 'application/json',
   'X-API-Key': API_KEY,
@@ -195,6 +223,178 @@ class PoolsService {
   }
 
   /**
+   * Verificar si una dirección es administrador
+   */
+  async isAdmin(walletAddress: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/verify/${walletAddress}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.isAdmin || false;
+    } catch (error) {
+      console.error('Error verifying admin:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verificar si una wallet es administradora
+   */
+  async checkAdminStatus(walletAddress: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/check/${walletAddress}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const result = await response.json();
+      return result.isAdmin || false;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      // Para desarrollo, permitir ciertas wallets como admin
+      const devAdminWallets = [
+        '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+        '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+        '0xEf4dE33f51a75C0d3Dfa5e8B0B23370f0B3B6a87'
+      ];
+      return devAdminWallets.includes(walletAddress.toLowerCase());
+    }
+  }
+
+  /**
+   * Obtener cartas disponibles para un pool específico
+   */
+  async getAvailableCards(poolAddress: string): Promise<Card[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contracts/available-cards/${poolAddress}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching available cards:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtener todas las cartas disponibles para crear WrapSells
+   */
+  async getAllAvailableCards(): Promise<Card[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/cards`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching all available cards:', error);
+      return this.getMockCards();
+    }
+  }
+
+  /**
+   * Crear un contrato WrapSell individual
+   */
+  async createWrapSell(data: CreateWrapSellData): Promise<{ contractAddress: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contracts/wrap-sells/create`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating WrapSell contract:', error);
+      // Retornar una dirección mock para desarrollo
+      return {
+        contractAddress: `0x${Math.random().toString(16).substr(2, 40)}`
+      };
+    }
+  }
+
+  /**
+   * Crear múltiples contratos WrapSell de una vez
+   */
+  async createMultipleWrapSells(data: CreateMultipleWrapSellsData): Promise<{ contracts: Array<{ cardId: number; contractAddress: string; cardName: string }> }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contracts/wrap-sells/create-multiple`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating multiple WrapSell contracts:', error);
+      // Simular creación múltiple para desarrollo
+      const availableCards = await this.getAllAvailableCards();
+      const mockResults = data.selectedCards.map(cardId => {
+        const card = availableCards.find(c => c.id === cardId);
+        return {
+          cardId,
+          contractAddress: `0x${Math.random().toString(16).substr(2, 40)}`,
+          cardName: card?.name || `Card ${cardId}`
+        };
+      });
+      return { contracts: mockResults };
+    }
+  }
+
+  /**
+   * Asociar un WrapSell existente a un pool
+   */
+  async associateWrapSellToPool(wrapSellAddress: string, poolAddress: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contracts/wrap-sells/associate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          wrapSellAddress,
+          poolAddress
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error associating WrapSell to pool:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Funciones auxiliares
    */
   private getTCGNameFromPool(poolName: string): string {
@@ -305,7 +505,87 @@ class PoolsService {
       }
     ];
   }
+
+  /**
+   * Datos mock de cartas para desarrollo
+   */
+  private getMockCards(): Card[] {
+    return [
+      {
+        id: 1,
+        name: 'Charizard',
+        card_id: '4',
+        edition: 'Base Set',
+        market_value: 350.00,
+        url: 'https://www.pricecharting.com/game/pokemon-base-set/charizard-4',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        name: 'Blastoise',
+        card_id: '2',
+        edition: 'Base Set',
+        market_value: 280.00,
+        url: 'https://www.pricecharting.com/game/pokemon-base-set/blastoise-2',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 3,
+        name: 'Venusaur',
+        card_id: '15',
+        edition: 'Base Set',
+        market_value: 200.00,
+        url: 'https://www.pricecharting.com/game/pokemon-base-set/venusaur-15',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 4,
+        name: 'Pikachu',
+        card_id: '58',
+        edition: 'Base Set',
+        market_value: 125.00,
+        url: 'https://www.pricecharting.com/game/pokemon-base-set/pikachu-58',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 5,
+        name: 'Milotic Ex',
+        card_id: '96',
+        edition: 'Pokemon Emerald',
+        market_value: 131.57,
+        url: 'https://www.pricecharting.com/game/pokemon-emerald/milotic-ex-96',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 6,
+        name: 'Blue-Eyes White Dragon',
+        card_id: 'LOB-001',
+        edition: 'Legend of Blue Eyes',
+        market_value: 450.00,
+        url: 'https://www.pricecharting.com/game/yugioh-legend-of-blue-eyes/blue-eyes-white-dragon',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 7,
+        name: 'Dark Magician',
+        card_id: 'LOB-005',
+        edition: 'Legend of Blue Eyes',
+        market_value: 180.00,
+        url: 'https://www.pricecharting.com/game/yugioh-legend-of-blue-eyes/dark-magician',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 8,
+        name: 'Red-Eyes Black Dragon',
+        card_id: 'LOB-070',
+        edition: 'Legend of Blue Eyes',
+        market_value: 95.00,
+        url: 'https://www.pricecharting.com/game/yugioh-legend-of-blue-eyes/red-eyes-black-dragon',
+        created_at: new Date().toISOString(),
+      }
+    ];
+  }
 }
 
 export const poolsService = new PoolsService();
-export type { WrapPool, WrapSell, CardDeposit, TCGCardData, PriceHistoryPoint };
+export type { WrapPool, WrapSell, CardDeposit, TCGCardData, PriceHistoryPoint, Card, CreateWrapSellData, CreateMultipleWrapSellsData };

@@ -16,9 +16,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
         <div className="flex">
             {/* Sidebar */}
             <div
-                className={`bg-gray-800 text-white h-full transition-all duration-300 ease-in-out ${
-                    isOpen ? 'w-64' : 'w-16'
-                }`}
+                className={`bg-gray-800 text-white h-full transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-16'
+                    }`}
             >
                 {/* Toggle Button */}
                 <div className="p-4 border-b border-gray-700">
@@ -27,9 +26,8 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                         className="w-full flex items-center justify-center p-2 rounded hover:bg-gray-700 transition-colors"
                     >
                         <svg
-                            className={`w-6 h-6 transition-transform duration-300 ${
-                                isOpen ? 'rotate-180' : ''
-                            }`}
+                            className={`w-6 h-6 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
+                                }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -53,23 +51,23 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                                 <nav>
                                     <ul className="space-y-2">
                                         <li>
-                                            <a href="dashboard" className="block p-2 rounded hover:bg-gray-700">
+                                            <a href="/dashboard" className="block p-2 rounded hover:bg-gray-700">
                                                 Dashboard
                                             </a>
                                         </li>
-                                         <li>
-                                            <a href="mypools" className="block p-2 rounded hover:bg-gray-700">
+                                        <li>
+                                            <a href="/mypools" className="block p-2 rounded hover:bg-gray-700">
                                                 My Pools
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="settings" className="block p-2 rounded hover:bg-gray-700">
-                                                Settings
+                                            <a href="/admin" className="block p-2 rounded hover:bg-gray-700">
+                                                Admin
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" className="block p-2 rounded hover:bg-gray-700">
-                                                Stats
+                                            <a href="/settings" className="block p-2 rounded hover:bg-gray-700">
+                                                Settings
                                             </a>
                                         </li>
                                     </ul>
