@@ -17,7 +17,7 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
     const disconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const hasBeenConnectedRef = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
-    
+
     // Buffer temporal para almacenar la dirección de la wallet
     const walletAddressBufferRef = useRef<string | null>(null);
     const lastConnectionTimeRef = useRef<number>(0);
@@ -28,7 +28,7 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
             // Verificar si hubo un cambio de wallet desde una página que no es /wallet
             const previousAddress = walletAddressBufferRef.current;
             const isWalletPage = pathname === '/wallet';
-            
+
             // Si hay una dirección previa diferente y no estamos en /wallet, es un cambio no autorizado
             if (previousAddress && previousAddress !== address && !isWalletPage) {
                 console.log('Unauthorized wallet change detected outside /wallet page. Redirecting...');
@@ -39,18 +39,18 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
                 router.push('/');
                 return;
             }
-            
+
             // Si es un cambio autorizado o primera conexión
             hasBeenConnectedRef.current = true;
             walletAddressBufferRef.current = address;
             lastConnectionTimeRef.current = Date.now();
             setShouldRedirect(false);
             setIsLoading(false);
-            
+
             // Almacenar en localStorage como respaldo
             localStorage.setItem('wrapsell_wallet_buffer', address);
             localStorage.setItem('wrapsell_last_connection', Date.now().toString());
-            
+
             console.log('Wallet connected and stored in buffer:', address);
         }
     }, [isConnected, address, pathname, router]);
@@ -59,7 +59,7 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
     useEffect(() => {
         const storedAddress = localStorage.getItem('wrapsell_wallet_buffer');
         const storedTime = localStorage.getItem('wrapsell_last_connection');
-        
+
         if (storedAddress && storedTime) {
             const timeDiff = Date.now() - parseInt(storedTime);
             // Si la última conexión fue hace menos de 10 minutos, mantener el buffer
@@ -94,14 +94,14 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
                 // Verificar si tenemos una dirección en el buffer temporal
                 const hasWalletInBuffer = walletAddressBufferRef.current !== null;
                 const timeSinceLastConnection = Date.now() - lastConnectionTimeRef.current;
-                
+
                 // Solo considerar como desconexión real si:
                 // 1. No está conectado
                 // 2. No hay dirección en buffer O ha pasado mucho tiempo desde la última conexión
                 if (!hasWalletInBuffer || timeSinceLastConnection > 30000) { // 30 segundos
                     console.log('Wallet truly disconnected, starting countdown...');
                     setIsLoading(true);
-                    
+
                     // Dar un delay de 8 segundos antes de redirigir para permitir reconexiones automáticas
                     disconnectTimeoutRef.current = setTimeout(() => {
                         console.log('Wallet disconnected for more than 8 seconds, redirecting to home...');
@@ -142,9 +142,9 @@ const WalletGuard: React.FC<WalletGuardProps> = ({ children }) => {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">
-                        {isConnecting ? 'Connecting wallet...' : 
-                         isReconnecting ? 'Reconnecting wallet...' : 
-                         'Checking wallet connection...'}
+                        {isConnecting ? 'Connecting wallet...' :
+                            isReconnecting ? 'Reconnecting wallet...' :
+                                'Checking wallet connection...'}
                     </p>
                 </div>
             </div>

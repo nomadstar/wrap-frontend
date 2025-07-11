@@ -44,10 +44,10 @@ export const useWalletPersistence = (): UseWalletPersistenceReturn => {
         const loadWalletBuffer = () => {
             const stored = localStorage.getItem(WALLET_BUFFER_KEY);
             const storedTime = localStorage.getItem(LAST_CONNECTION_KEY);
-            
+
             if (stored && storedTime) {
                 const timeDiff = Date.now() - parseInt(storedTime);
-                
+
                 if (timeDiff < BUFFER_EXPIRY_TIME) {
                     setStoredAddress(stored);
                     setIsWalletPersisted(true);
@@ -79,7 +79,7 @@ export const useWalletPersistence = (): UseWalletPersistenceReturn => {
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
-        
+
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
