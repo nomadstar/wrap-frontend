@@ -57,8 +57,29 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error checking admin status:', error);
+    
+    // Fallback: verificar si es la wallet hardcodeada del script de migración
+    const hardcodedAdmin = '0xEf4dE33f51a75C0d3Dfa5e8B0B23370f0B3B6a87';
+    const isHardcodedAdmin = walletAddress.toLowerCase() === hardcodedAdmin.toLowerCase();
+    
+    if (isHardcodedAdmin) {
+      return NextResponse.json({
+        isAdmin: true,
+        adminData: {
+          walletAddress: hardcodedAdmin,
+          role: 'super_admin',
+          permissions: { all: true },
+          isActive: true
+        }
+      });
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Database connection failed',
+        isAdmin: false,
+        adminData: null 
+      },
       { status: 500 }
     );
   }
