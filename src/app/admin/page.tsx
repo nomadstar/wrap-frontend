@@ -218,14 +218,14 @@ const AdminPage = () => {
                         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add Card by PriceCharting URL</h2>
                         <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
                             <p className="text-sm">
-                                <strong>Instructions:</strong> Provide a valid PriceCharting.com URL for a Pokémon TCG card. 
+                                <strong>Instructions:</strong> Provide a valid PriceCharting.com URL for a Pokémon TCG card.
                                 The system will automatically extract card data including name, edition, market value, and card ID.
                             </p>
                             <p className="text-sm mt-2">
                                 <strong>Example:</strong> https://www.pricecharting.com/game/pokemon-base-set/charizard-4
                             </p>
                         </div>
-                        
+
                         <form onSubmit={addCardByUrl}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="md:col-span-2">
@@ -339,7 +339,7 @@ const AdminPage = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <span className="font-mono">
-                                                        {card.user_wallet ? 
+                                                        {card.user_wallet ?
                                                             `${card.user_wallet.substring(0, 6)}...${card.user_wallet.substring(card.user_wallet.length - 4)}`
                                                             : 'N/A'
                                                         }
@@ -350,9 +350,9 @@ const AdminPage = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {card.url ? (
-                                                        <a 
-                                                            href={card.url} 
-                                                            target="_blank" 
+                                                        <a
+                                                            href={card.url}
+                                                            target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="text-blue-600 hover:text-blue-800"
                                                         >
