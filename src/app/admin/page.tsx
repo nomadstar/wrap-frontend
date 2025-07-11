@@ -429,11 +429,11 @@ const AdminPage = () => {
                         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Deploy WrapSell Contract</h2>
                         <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
                             <p className="text-sm">
-                                <strong>⚠️ Warning:</strong> This will deploy a real smart contract to the blockchain. 
+                                <strong>⚠️ Warning:</strong> This will deploy a real smart contract to the blockchain.
                                 Make sure all information is correct before proceeding. Gas fees will be required.
                             </p>
                         </div>
-                        
+
                         <form onSubmit={deployWrapSellContract}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
@@ -708,10 +708,10 @@ const AdminPage = () => {
                                                     </button>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {(parseFloat(contract.estimated_value_per_card) / 10**18).toFixed(4)} ETH
+                                                    {(parseFloat(contract.estimated_value_per_card) / 10 ** 18).toFixed(4)} ETH
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {(parseFloat(contract.total_supply) / 10**18).toFixed(2)}
+                                                    {(parseFloat(contract.total_supply) / 10 ** 18).toFixed(2)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {contract.total_cards_deposited}
