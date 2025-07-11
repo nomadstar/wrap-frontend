@@ -10,6 +10,7 @@ import "./globals.css";
 
 // Context Wagmi
 import ContextProvider from "../../context";
+import WalletGuard from "../components/WalletGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +53,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ContextProvider cookies={cookies}>{children}</ContextProvider>
+        <ContextProvider cookies={cookies}>
+          <WalletGuard>
+            {children}
+          </WalletGuard>
+        </ContextProvider>
       </body>
     </html>
   );
