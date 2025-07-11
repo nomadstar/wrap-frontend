@@ -41,10 +41,9 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
     return (
         <>
             {/* Main Card */}
-            <div 
-                className={`bg-white rounded-lg shadow-lg overflow-hidden max-w-sm mx-auto cursor-pointer transition-all duration-300 hover:shadow-xl ${
-                    isExpanded ? 'transform scale-110' : ''
-                }`}
+            <div
+                className={`bg-white rounded-lg shadow-lg overflow-hidden max-w-sm mx-auto cursor-pointer transition-all duration-300 hover:shadow-xl ${isExpanded ? 'transform scale-110' : ''
+                    }`}
                 onClick={handleCardClick}
             >
                 {/* Card Image */}
@@ -62,28 +61,28 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
                 {/* Card Details */}
                 <div className="p-4">
                     <h3 className="text-lg font-bold text-gray-800 mb-2">{cardData.name}</h3>
-                    
+
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                             <span className="text-gray-600">ID:</span>
                             <span className="font-medium">{cardData.id}</span>
                         </div>
-                        
+
                         <div className="flex justify-between">
                             <span className="text-gray-600">Set:</span>
                             <span className="font-medium">{cardData.set}</span>
                         </div>
-                        
+
                         <div className="flex justify-between">
                             <span className="text-gray-600">Rarity:</span>
                             <span className="font-medium text-purple-600">{cardData.rarity}</span>
                         </div>
-                        
+
                         <div className="flex justify-between">
                             <span className="text-gray-600">Condition:</span>
                             <span className="font-medium">{cardData.condition}</span>
                         </div>
-                        
+
                         <div className="flex justify-between items-center pt-2 border-t">
                             <span className="text-gray-600">Market Value:</span>
                             <span className="font-bold text-green-600 text-lg">
@@ -99,26 +98,26 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
                             <div className="h-32">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={cardData.priceHistory}>
-                                        <XAxis 
-                                            dataKey="date" 
+                                        <XAxis
+                                            dataKey="date"
                                             tick={{ fontSize: 10 }}
                                             axisLine={false}
                                             tickLine={false}
                                         />
-                                        <YAxis 
+                                        <YAxis
                                             tick={{ fontSize: 10 }}
                                             axisLine={false}
                                             tickLine={false}
                                         />
-                                        <Tooltip 
+                                        <Tooltip
                                             formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Value']}
                                             labelStyle={{ fontSize: '12px' }}
                                             contentStyle={{ fontSize: '12px' }}
                                         />
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="value" 
-                                            stroke="#10b981" 
+                                        <Line
+                                            type="monotone"
+                                            dataKey="value"
+                                            stroke="#10b981"
                                             strokeWidth={2}
                                             dot={false}
                                         />
@@ -132,11 +131,11 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
 
             {/* Expanded Modal Overlay */}
             {isExpanded && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
                     onClick={handleOverlayClick}
                 >
-                    <div 
+                    <div
                         className="bg-white rounded-lg shadow-2xl overflow-hidden max-w-2xl w-full max-h-[90vh] overflow-y-auto transform animate-spin-scale"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -161,29 +160,29 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
                         {/* Expanded Card Details */}
                         <div className="p-6">
                             <h3 className="text-2xl font-bold text-gray-800 mb-4">{cardData.name}</h3>
-                            
+
                             <div className="grid grid-cols-2 gap-4 text-base mb-6">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">ID:</span>
                                     <span className="font-medium">{cardData.id}</span>
                                 </div>
-                                
+
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Set:</span>
                                     <span className="font-medium">{cardData.set}</span>
                                 </div>
-                                
+
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Rarity:</span>
                                     <span className="font-medium text-purple-600">{cardData.rarity}</span>
                                 </div>
-                                
+
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Condition:</span>
                                     <span className="font-medium">{cardData.condition}</span>
                                 </div>
                             </div>
-                            
+
                             <div className="flex justify-center items-center py-4 border-t border-b mb-6">
                                 <span className="text-gray-600 text-lg mr-4">Market Value:</span>
                                 <span className="font-bold text-green-600 text-3xl">
@@ -198,26 +197,26 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
                                     <div className="h-64">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <LineChart data={cardData.priceHistory}>
-                                                <XAxis 
-                                                    dataKey="date" 
+                                                <XAxis
+                                                    dataKey="date"
                                                     tick={{ fontSize: 12 }}
                                                     axisLine={false}
                                                     tickLine={false}
                                                 />
-                                                <YAxis 
+                                                <YAxis
                                                     tick={{ fontSize: 12 }}
                                                     axisLine={false}
                                                     tickLine={false}
                                                 />
-                                                <Tooltip 
+                                                <Tooltip
                                                     formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Value']}
                                                     labelStyle={{ fontSize: '14px' }}
                                                     contentStyle={{ fontSize: '14px' }}
                                                 />
-                                                <Line 
-                                                    type="monotone" 
-                                                    dataKey="value" 
-                                                    stroke="#10b981" 
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="value"
+                                                    stroke="#10b981"
                                                     strokeWidth={3}
                                                     dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
                                                 />

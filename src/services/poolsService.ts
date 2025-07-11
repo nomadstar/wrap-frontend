@@ -249,17 +249,42 @@ class PoolsService {
    */
   async checkAdminStatus(walletAddress: string): Promise<boolean> {
     try {
-      const response = await fetch(`/api/admin/check?wallet=${walletAddress}`);
+      console.log(`🔍 Checking admin status for wallet: ${walletAddress}`);
+      const response = await fetch(`${API_BASE_URL}/admin/check/${walletAddress}`, {
+        method: 'GET',
+        headers,
+      });
+      
+      console.log(`📡 Response status: ${response.status}`);
       
       if (!response.ok) {
-        throw new Error('Failed to check admin status');
+        throw new Error(`Failed to check admin status: ${response.status}`);
       }
       
       const data = await response.json();
-      return data.isAdmin;
+      console.log(`📋 Admin check response:`, data);
+      return data.is_admin;
     } catch (error) {
       console.error('Error checking admin status:', error);
-      throw error;
+      
+      // Fallback: verificar si es la wallet hardcodeada del script de migración
+      const hardcodedAdmins = [
+        '0xEf4dE33f51a75C0d3Dfa5e8B0B23370f0B3B6a87',
+        '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+        '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+      ];
+      
+      const isHardcodedAdmin = hardcodedAdmins.some(admin => 
+        walletAddress.toLowerCase() === admin.toLowerCase()
+      );
+      
+      if (isHardcodedAdmin) {
+        console.log('🔧 Using hardcoded admin fallback for wallet:', walletAddress);
+        return true;
+      }
+      
+      console.log('❌ Wallet not authorized as admin:', walletAddress);
+      return false;
     }
   }
 
