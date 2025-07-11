@@ -16,6 +16,8 @@ import {
     Shield
 } from 'lucide-react';
 import Sidebar from '../../components/webcomponents/sidebar';
+import Navbar from '../../components/webcomponents/Navbar';
+import WalletGuard from '../../components/WalletGuard';
 
 export default function WalletPage() {
     const { address, isConnected, connector } = useAccount();
@@ -87,15 +89,17 @@ export default function WalletPage() {
     }
 
     return (
-        <div className="flex min-h-screen">
-            <Sidebar />
-            <div className="flex-1 bg-gray-50">
-                {/* Header */}
-                <div className="bg-white shadow-sm border-b">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center py-6">
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900">Wallet Management</h1>
+        <WalletGuard>
+            <Navbar />
+            <div className="flex min-h-screen">
+                <Sidebar />
+                <div className="flex-1 bg-gray-50">
+                    {/* Header */}
+                    <div className="bg-white shadow-sm border-b">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between items-center py-6">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900">Wallet Management</h1>
                                 <p className="text-gray-600 mt-1">Manage your connected wallet and account settings</p>
                             </div>
                         </div>
@@ -262,5 +266,6 @@ export default function WalletPage() {
                 </div>
             </div>
         </div>
+        </WalletGuard>
     );
 }

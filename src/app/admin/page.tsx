@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import Loading from '../../components/webcomponents/loading';
 import Sidebar from '../../components/webcomponents/sidebar';
+import Navbar from '../../components/webcomponents/Navbar';
+import WalletGuard from '../../components/WalletGuard';
 import { poolsService, WrapPool, Card, CreateMultipleWrapSellsData } from '../../services/poolsService';
 
 
@@ -208,29 +210,40 @@ const AdminPage = () => {
 
     if (!isAdmin) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full">
-                    <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-                    <p className="text-gray-700 mb-6">
-                        You don't have permission to access the admin area. Please connect with an admin wallet.
-                    </p>
-                    <button
-                        onClick={() => window.history.back()}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Go Back
-                    </button>
+            <WalletGuard>
+                <Navbar />
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full">
+                        <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+                        <p className="text-gray-700 mb-6">
+                            You don't have permission to access the admin area. Please connect with an admin wallet.
+                        </p>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => window.history.back()}
+                                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Go Back
+                            </button>
+                            <w3m-button />
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </WalletGuard>
         );
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            <Sidebar />
-            <div className="flex-1 p-6">
-                <div className="max-w-7xl mx-auto">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard - WrapSell Token Generator</h1>
+        <WalletGuard>
+            <Navbar />
+            <div className="flex min-h-screen bg-gray-50">
+                <Sidebar />
+                <div className="flex-1 p-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex justify-between items-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard - WrapSell Token Generator</h1>
+                            <w3m-button />
+                        </div>
 
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
@@ -613,6 +626,7 @@ const AdminPage = () => {
                 </div>
             </div>
         </div>
+        </WalletGuard>
     );
 };
 

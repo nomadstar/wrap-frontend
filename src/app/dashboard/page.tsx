@@ -1,6 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import Sidebar from '../../components/webcomponents/sidebar';
+import Navbar from '../../components/webcomponents/Navbar';
+import WalletGuard from '../../components/WalletGuard';
 
 import Dashboard from './dashboard';
 import StatsWidget from './statswidget';
@@ -132,10 +134,20 @@ const WrapPoolPage = () => {
 	};
 
 	return (
-		<div className="flex min-h-screen">
-			<Sidebar />
-			<main className="flex-1">{renderMainContent()}</main>
-		</div>
+		<WalletGuard>
+			<Navbar />
+			<div className="flex min-h-screen">
+				<Sidebar />
+				<main className="flex-1">
+					<div className="p-6">
+						<div className="flex justify-between items-center mb-6">
+							<h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+						</div>
+						{renderMainContent()}
+					</div>
+				</main>
+			</div>
+		</WalletGuard>
 	);
 };
 

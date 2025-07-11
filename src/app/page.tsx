@@ -23,6 +23,8 @@ import {
 import { useRouter } from "next/navigation"; // Para Next.js 13+
 import { apiService } from "@/services/api";
 import UserCreationStatus from "@/components/ui/UserCreationStatus";
+import Navbar from "@/components/webcomponents/Navbar";
+import WalletGuard from "@/components/WalletGuard";
 
 const SIMPLE_STORAGE_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_SIMPLE_STORAGE_CONTRACT_ADDRESS;
@@ -44,106 +46,6 @@ const SIMPLE_STORAGE_ABI = [
     type: "function",
   },
 ];
-
-const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  return (
-    <nav className="bg-gradient-to-r from-slate-900 to-slate-800 p-4 text-white shadow-2xl relative">
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <img src="/favicon.ico" alt="WrapSell Icon" className="w-10 h-10" />
-          <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            WrapSell
-          </span>
-        </div>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-6">
-          <a
-            href="#"
-            className="hover:text-purple-300 transition-colors duration-200 font-medium"
-          >
-            Home
-          </a>
-          <a
-            href="#"
-            className="hover:text-purple-300 transition-colors duration-200 font-medium"
-          >
-            About
-          </a>
-          <a
-            href="#"
-            className="hover:text-purple-300 transition-colors duration-200 font-medium"
-          >
-            Contact
-          </a>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={toggleMenu}
-          className="md:hidden p-2 rounded-lg hover:bg-slate-700 transition-colors duration-200"
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
-        </button>
-      </div>
-
-      {/* Mobile Menu Dropdown */}
-      <div
-        className={`md:hidden absolute top-full left-0 right-0 bg-slate-800 shadow-2xl border-t border-slate-700 transition-all duration-300 ease-in-out ${isMenuOpen
-          ? "opacity-100 translate-y-0 pointer-events-auto"
-          : "opacity-0 -translate-y-2 pointer-events-none"
-          }`}
-      >
-        <div className="px-4 py-4 space-y-3">
-          <a
-            href="#"
-            onClick={closeMenu}
-            className="block py-3 px-4 rounded-lg hover:bg-slate-700 hover:text-purple-300 transition-all duration-200 font-medium"
-          >
-            Home
-          </a>
-          <a
-            href="#"
-            onClick={closeMenu}
-            className="block py-3 px-4 rounded-lg hover:bg-slate-700 hover:text-purple-300 transition-all duration-200 font-medium"
-          >
-            About
-          </a>
-          <a
-            href="#"
-            onClick={closeMenu}
-            className="block py-3 px-4 rounded-lg hover:bg-slate-700 hover:text-purple-300 transition-all duration-200 font-medium"
-          >
-            Contact
-          </a>
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[-1]"
-          onClick={closeMenu}
-        />
-      )}
-    </nav>
-  );
-};
 
 const Hero = () => {
   return (
@@ -439,10 +341,13 @@ function WrapSellApp() {
         error instanceof Error ? error.message : "Unknown error";
       showMessage(`❌ Transaction failed: ${errorMessage}`, "error");
     }
-  }; return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Navbar />
-      <Hero />
+  }; 
+  
+  return (
+    <WalletGuard>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <Navbar />
+        <Hero />
 
       <main className="max-w-4xl mx-auto p-6 py-12">
         <div className="text-center mb-12">
@@ -547,14 +452,7 @@ function WrapSellApp() {
                       </button>
                     </div>
 
-                    {/* Wallet Management */}
-                    <button
-                      onClick={handleDisconnect}
-                      className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
-                    >
-                      <User className="w-5 h-5" />
-                      <span>Manage Wallet</span>
-                    </button>
+                    {/* El botón de wallet ahora está en el Navbar */}
                   </>
                 )}
               </div>
@@ -610,6 +508,7 @@ function WrapSellApp() {
         </div>
       </main>
     </div>
+    </WalletGuard>
   );
 }
 

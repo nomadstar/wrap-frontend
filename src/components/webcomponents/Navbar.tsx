@@ -16,22 +16,87 @@ const Navbar: React.FC = () => {
                 <img src="/assets/Simbol.png" alt="Logo" style={{ height: '2rem', marginRight: '0.75rem' }} />
                 WrapSell
             </div>
-            <ul style={{
-                listStyle: 'none',
+            <div style={{
                 display: 'flex',
-                gap: '1.5rem',
-                margin: 0,
-                padding: 0
+                alignItems: 'center',
+                gap: '1.5rem'
             }}>
-                {isLoggedIn ? (
-                    <>
-                        {/* <li><w3m-button /></li> - Comentado para evitar botones duplicados */}
-                        {/* <li><w3m-network-button /></li> - Comentado para evitar botones duplicados */}
-                    </>
-                ) : (
-                    <>{/* <li><w3m-button /></li> - Comentado para evitar botones duplicados */}</>
-                )}
-            </ul>
+                <ul style={{
+                    listStyle: 'none',
+                    display: 'flex',
+                    gap: '1.5rem',
+                    margin: 0,
+                    padding: 0
+                }}>
+                    <li>
+                        <a 
+                            href="/" 
+                            style={{ 
+                                color: '#fff', 
+                                textDecoration: 'none',
+                                transition: 'color 0.2s',
+                                fontWeight: '500'
+                            }}
+                            onMouseOver={(e) => (e.target as HTMLElement).style.color = '#c084fc'}
+                            onMouseOut={(e) => (e.target as HTMLElement).style.color = '#fff'}
+                        >
+                            Home
+                        </a>
+                    </li>
+                    {isLoggedIn && (
+                        <>
+                            <li>
+                                <a 
+                                    href="/dashboard" 
+                                    style={{ 
+                                        color: '#fff', 
+                                        textDecoration: 'none',
+                                        transition: 'color 0.2s',
+                                        fontWeight: '500'
+                                    }}
+                                    onMouseOver={(e) => (e.target as HTMLElement).style.color = '#c084fc'}
+                                    onMouseOut={(e) => (e.target as HTMLElement).style.color = '#fff'}
+                                >
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a 
+                                    href="/mypools" 
+                                    style={{ 
+                                        color: '#fff', 
+                                        textDecoration: 'none',
+                                        transition: 'color 0.2s',
+                                        fontWeight: '500'
+                                    }}
+                                    onMouseOver={(e) => (e.target as HTMLElement).style.color = '#c084fc'}
+                                    onMouseOut={(e) => (e.target as HTMLElement).style.color = '#fff'}
+                                >
+                                    My Pools
+                                </a>
+                            </li>
+                            <li>
+                                <a 
+                                    href="/wallet" 
+                                    style={{ 
+                                        color: '#fff', 
+                                        textDecoration: 'none',
+                                        transition: 'color 0.2s',
+                                        fontWeight: '500'
+                                    }}
+                                    onMouseOver={(e) => (e.target as HTMLElement).style.color = '#c084fc'}
+                                    onMouseOut={(e) => (e.target as HTMLElement).style.color = '#fff'}
+                                >
+                                    Wallet
+                                </a>
+                            </li>
+                        </>
+                    )}
+                </ul>
+                
+                {/* Botón oficial de Reown AppKit */}
+                <w3m-button />
+            </div>
         </nav>
     );
 };

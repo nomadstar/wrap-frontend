@@ -15,6 +15,8 @@ import {
 	Plus
 } from 'lucide-react';
 import Sidebar from '../../components/webcomponents/sidebar';
+import Navbar from '../../components/webcomponents/Navbar';
+import WalletGuard from '../../components/WalletGuard';
 import Loading from '../../components/webcomponents/loading';
 import { poolsService, WrapPool, WrapSell } from '../../services/poolsService';
 
@@ -179,29 +181,34 @@ const MyPoolsPage = () => {
 	}
 
 	return (
-		<div className="flex min-h-screen">
-			<Sidebar />
-			<div className="flex-1 bg-gray-50">
-				{/* Header */}
-				<div className="bg-white shadow-sm border-b">
-					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-						<div className="flex justify-between items-center py-6">
-							<div>
-								<h1 className="text-3xl font-bold text-gray-900">My Pools</h1>
-								<p className="text-gray-600 mt-1">Manage your WrapSell investments and discover new pools</p>
+		<WalletGuard>
+			<Navbar />
+			<div className="flex min-h-screen">
+				<Sidebar />
+				<div className="flex-1 bg-gray-50">
+					{/* Header */}
+					<div className="bg-white shadow-sm border-b">
+						<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+							<div className="flex justify-between items-center py-6">
+								<div>
+									<h1 className="text-3xl font-bold text-gray-900">My Pools</h1>
+									<p className="text-gray-600 mt-1">Manage your WrapSell investments and discover new pools</p>
+								</div>
+								<div className="flex items-center space-x-4">
+									{isAdmin && (
+										<button
+											onClick={() => router.push('/admin')}
+											className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+										>
+											<Plus className="w-4 h-4 mr-2" />
+											Create Pool
+										</button>
+									)}
+									<w3m-button />
+								</div>
 							</div>
-							{isAdmin && (
-								<button
-									onClick={() => router.push('/admin')}
-									className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-								>
-									<Plus className="w-4 h-4 mr-2" />
-									Create Pool
-								</button>
-							)}
 						</div>
 					</div>
-				</div>
 
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 					{/* Portfolio Overview */}
@@ -328,6 +335,7 @@ const MyPoolsPage = () => {
 				</div>
 			</div>
 		</div>
+		</WalletGuard>
 	);
 };
 
