@@ -249,26 +249,36 @@ class PoolsService {
    */
   async checkAdminStatus(walletAddress: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/check/${walletAddress}`, {
-        method: 'GET',
-        headers,
-      });
-
+      const response = await fetch(`/api/admin/check?wallet=${walletAddress}`);
+      
       if (!response.ok) {
-        return false;
+        throw new Error('Failed to check admin status');
       }
-
-      const result = await response.json();
-      return result.isAdmin || false;
+      
+      const data = await response.json();
+      return data.isAdmin;
     } catch (error) {
       console.error('Error checking admin status:', error);
-      // Para desarrollo, permitir ciertas wallets como admin
-      const devAdminWallets = [
-        '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-        '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-        '0xEf4dE33f51a75C0d3Dfa5e8B0B23370f0B3B6a87'
-      ];
-      return devAdminWallets.includes(walletAddress.toLowerCase());
+      throw error;
+    }
+  }
+
+  /**
+   * Función adicional para obtener datos completos del admin
+   */
+  async getAdminData(walletAddress: string): Promise<any> {
+    try {
+      const response = await fetch(`/api/admin/check?wallet=${walletAddress}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to get admin data');
+      }
+      
+      const data = await response.json();
+      return data.adminData;
+    } catch (error) {
+      console.error('Error getting admin data:', error);
+      throw error;
     }
   }
 
