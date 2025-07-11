@@ -26,3 +26,11 @@ export const createUser = async (userData: Omit<User, 'id' | 'created_at' | 'upd
     updated_at: new Date().toISOString(),
   };
 };
+
+export const fetchReownWallet = async (address: string): Promise<string> => {
+  const REOWN_API_URL = process.env.NEXT_PUBLIC_REOWN_API_URL || "https://tu-backend-reown.com";
+  const res = await fetch(`${REOWN_API_URL}/users/${address}`);
+  if (!res.ok) throw new Error("No se pudo obtener la wallet de reown");
+  const user = await res.json();
+  return user.wallet_address;
+};

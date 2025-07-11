@@ -1,7 +1,7 @@
 import { useAccount } from 'wagmi';
 import React from 'react';
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ isAdmin?: boolean }> = ({ isAdmin }) => {
     const { isConnected: isLoggedIn } = useAccount();
     return (
         <nav style={{
@@ -75,21 +75,23 @@ const Navbar: React.FC = () => {
                                     My Pools
                                 </a>
                             </li>
-                            <li>
-                                <a
-                                    href="/admin"
-                                    style={{
-                                        color: '#fff',
-                                        textDecoration: 'none',
-                                        transition: 'color 0.2s',
-                                        fontWeight: '500'
-                                    }}
-                                    onMouseOver={(e) => (e.target as HTMLElement).style.color = '#c084fc'}
-                                    onMouseOut={(e) => (e.target as HTMLElement).style.color = '#fff'}
-                                >
-                                    Admin
-                                </a>
-                            </li>
+                            {isAdmin && (
+                                <li>
+                                    <a
+                                        href="/admin"
+                                        style={{
+                                            color: '#fff',
+                                            textDecoration: 'none',
+                                            transition: 'color 0.2s',
+                                            fontWeight: '500'
+                                        }}
+                                        onMouseOver={(e) => (e.target as HTMLElement).style.color = '#c084fc'}
+                                        onMouseOut={(e) => (e.target as HTMLElement).style.color = '#fff'}
+                                    >
+                                        Admin
+                                    </a>
+                                </li>
+                            )}
                         </>
                     )}
                 </ul>
