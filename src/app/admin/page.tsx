@@ -385,7 +385,7 @@ const AdminPage = () => {
                                                         <div>ID: {card.card_id}</div>
                                                         <div>Edition: {card.edition}</div>
                                                         <div className="font-medium text-green-600">
-                                                            ${card.market_value.toFixed(2)}
+                                                            ${Number(card.market_value).toFixed(2)}
                                                         </div>
                                                     </div>
                                                 </div>

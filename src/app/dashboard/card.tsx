@@ -87,7 +87,7 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
                         <div className="flex justify-between items-center pt-2 border-t">
                             <span className="text-gray-600">Market Value:</span>
                             <span className="font-bold text-green-600 text-lg">
-                                ${cardData.marketValue.toFixed(2)}
+                                ${Number(cardData.marketValue).toFixed(2)}
                             </span>
                         </div>
                     </div>
@@ -188,7 +188,7 @@ const Card: React.FC<CardProps> = ({ cardData }) => {
                             <div className="flex justify-center items-center py-4 border-t border-b mb-6">
                                 <span className="text-gray-600 text-lg mr-4">Market Value:</span>
                                 <span className="font-bold text-green-600 text-3xl">
-                                    ${cardData.marketValue.toFixed(2)}
+                                    ${Number(cardData.marketValue).toFixed(2)}
                                 </span>
                             </div>
 
