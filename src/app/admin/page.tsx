@@ -59,50 +59,12 @@ const AdminPage = () => {
         poolId: '',
     });
 
-    // Deploy WrapSell contract form data
-    const [deployContractData, setDeployContractData] = useState({
-        name: '',
-        symbol: '',
-        cardId: '',
-        cardName: '',
-        rarity: '',
-        estimatedValuePerCard: '',
+    // Nuevo estado para el flujo todo-en-uno
+    const [deployByUrlData, setDeployByUrlData] = useState({
+        url: '',
         wrapPoolAddress: '',
     });
 
-    useEffect(() => {
-        const checkAdminStatus = async () => {
-            try {
-                setIsLoading(true);
-                // Verificación de admin SOLO mediante la base de datos (backend)
-                const adminStatus = await poolsService.checkAdminStatus(address || '');
-                setIsAdmin(adminStatus);
-
-                if (adminStatus) {
-                    const [pools, allCards, wrapSellContracts] = await Promise.all([
-                        poolsService.getWrapPools(),
-                        fetchCards(),
-                        fetchWrapSellContracts()
-                    ]);
-                    setWrapPools(pools);
-                    setCards(allCards);
-                    setWrapSellContracts(wrapSellContracts);
-                }
-            } catch (err) {
-                console.error('Error checking admin status:', err);
-                setError('Error checking admin permissions');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        if (address) {
-            checkAdminStatus();
-        } else {
-            setIsLoading(false);
-            setError('Please connect your wallet to access admin features');
-        }
-    }, [address]);
 
 
     // Fetch cards from backend
@@ -227,38 +189,37 @@ const AdminPage = () => {
         }
     };
 
-    const handleDeployContractChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    // Handler para el formulario de despliegue por URL
+    const handleDeployByUrlChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setDeployContractData(prev => ({ ...prev, [name]: value }));
+        setDeployByUrlData(prev => ({ ...prev, [name]: value }));
     };
 
-    const deployWrapSellContract = async (e: React.FormEvent) => {
+    // Submit handler para el flujo todo-en-uno
+    const deployWrapSellContractByUrl = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
         setSuccessMessage('');
 
         try {
-            const { name, symbol, cardId, cardName, rarity, estimatedValuePerCard, wrapPoolAddress } = deployContractData;
-
-            if (!name || !symbol || !cardId || !cardName || !rarity || !estimatedValuePerCard) {
-                setError('All fields except Wrap Pool Address are required');
+            const { url, wrapPoolAddress } = deployByUrlData;
+            if (!url || !address) {
+                setError('La URL es obligatoria y la wallet debe estar conectada');
+                return;
+            }
+            if (!url.includes('pricecharting.com')) {
+                setError('Debes ingresar una URL válida de PriceCharting.com');
                 return;
             }
 
             const requestBody = {
                 admin_wallet: address,
-                name: name.trim(),
-                symbol: symbol.trim(),
-                card_id: parseInt(cardId),
-                card_name: cardName.trim(),
-                rarity: rarity.trim(),
-                estimated_value_per_card: parseFloat(estimatedValuePerCard),
+                url: url.trim(),
                 wrap_pool_address: wrapPoolAddress || null
             };
 
-
-            const response = await fetch(`${API_BASE_URL}/contracts/wrapsell/deploy`, {
+            const response = await fetch(`${API_BASE_URL}/contracts/wrapsell/deploy-by-url`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -274,34 +235,25 @@ const AdminPage = () => {
 
             const result = await response.json();
             setSuccessMessage(
-                `WrapSell contract deployed successfully! 
-                Contract Address: ${result.contract_address}
-                Transaction: ${result.transaction_hash}
-                Gas Used: ${result.gas_used}`
+                `¡Contrato WrapSell desplegado exitosamente!\nDirección: ${result.contract_address}\nTransacción: ${result.transaction_hash || 'N/A'}\nGas usado: ${result.gas_used || 'N/A'}`
             );
 
             // Reset form
-            setDeployContractData({
-                name: '',
-                symbol: '',
-                cardId: '',
-                cardName: '',
-                rarity: '',
-                estimatedValuePerCard: '',
-                wrapPoolAddress: '',
-            });
+            setDeployByUrlData({ url: '', wrapPoolAddress: '' });
 
-            // Refresh pools data
-            const [pools, wrapSellContracts] = await Promise.all([
+            // Refrescar datos
+            const [pools, wrapSellContracts, allCards] = await Promise.all([
                 poolsService.getWrapPools(),
-                fetchWrapSellContracts()
+                fetchWrapSellContracts(),
+                fetchCards()
             ]);
             setWrapPools(pools);
             setWrapSellContracts(wrapSellContracts);
+            setCards(allCards);
 
         } catch (err) {
-            console.error('Error deploying WrapSell contract:', err);
-            setError(err instanceof Error ? err.message : 'Failed to deploy contract. See console for details.');
+            console.error('Error al desplegar contrato:', err);
+            setError(err instanceof Error ? err.message : 'Error al desplegar contrato. Ver consola.');
         } finally {
             setIsLoading(false);
         }
@@ -444,126 +396,42 @@ const AdminPage = () => {
                         </form>
                     </div>
 
-                    {/* Deploy WrapSell Contract Section */}
+                    {/* Deploy WrapSell Contract Section (nuevo flujo todo en uno) */}
                     <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Deploy WrapSell Contract</h2>
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Deploy WrapSell Contract (Todo en uno)</h2>
                         <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
                             <p className="text-sm">
-                                <strong>⚠️ Warning:</strong> This will deploy a real smart contract to the blockchain.
-                                Make sure all information is correct before proceeding. Gas fees will be required.
+                                <strong>⚠️ Atención:</strong> Esto desplegará un contrato real en la blockchain usando los datos extraídos automáticamente de PriceCharting. Solo necesitas pegar la URL de la carta. El backend hará todo el proceso (extraer, desplegar, guardar). Se requieren fees de gas.
                             </p>
                         </div>
 
-                        <form onSubmit={deployWrapSellContract}>
+                        <form onSubmit={deployWrapSellContractByUrl}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Token Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={deployContractData.name}
-                                        onChange={handleDeployContractChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="e.g., Wrapped Charizard"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Token Symbol *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="symbol"
-                                        value={deployContractData.symbol}
-                                        onChange={handleDeployContractChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="e.g., WCHAR"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Card ID *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="cardId"
-                                        value={deployContractData.cardId}
-                                        onChange={handleDeployContractChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="e.g., 4"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Card Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="cardName"
-                                        value={deployContractData.cardName}
-                                        onChange={handleDeployContractChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="e.g., Charizard"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Rarity *
-                                    </label>
-                                    <select
-                                        name="rarity"
-                                        value={deployContractData.rarity}
-                                        onChange={handleDeployContractChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    >
-                                        <option value="">-- Select Rarity --</option>
-                                        <option value="Common">Common</option>
-                                        <option value="Uncommon">Uncommon</option>
-                                        <option value="Rare">Rare</option>
-                                        <option value="Rare Holo">Rare Holo</option>
-                                        <option value="Ultra Rare">Ultra Rare</option>
-                                        <option value="Secret Rare">Secret Rare</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Estimated Value Per Card (ETH) *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="estimatedValuePerCard"
-                                        value={deployContractData.estimatedValuePerCard}
-                                        onChange={handleDeployContractChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="e.g., 0.5"
-                                        step="0.0001"
-                                        required
-                                    />
-                                </div>
-
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Associate to WrapPool (Optional)
+                                        PriceCharting.com URL de la carta *
+                                    </label>
+                                    <input
+                                        type="url"
+                                        name="url"
+                                        value={deployByUrlData.url}
+                                        onChange={handleDeployByUrlChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        placeholder="https://www.pricecharting.com/game/pokemon-..."
+                                        required
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Asociar a WrapPool (opcional)
                                     </label>
                                     <select
                                         name="wrapPoolAddress"
-                                        value={deployContractData.wrapPoolAddress}
-                                        onChange={handleDeployContractChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={deployByUrlData.wrapPoolAddress}
+                                        onChange={handleDeployByUrlChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                                     >
-                                        <option value="">-- No Pool --</option>
+                                        <option value="">-- Sin Pool --</option>
                                         {wrapPools.map(pool => (
                                             <option key={pool.contract_address} value={pool.contract_address}>
                                                 {pool.name} ({pool.symbol}) - {pool.contract_address.substring(0, 8)}...
@@ -571,14 +439,13 @@ const AdminPage = () => {
                                         ))}
                                     </select>
                                 </div>
-
                                 <div className="md:col-span-2">
                                     <button
                                         type="submit"
                                         className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
                                         disabled={isLoading}
                                     >
-                                        {isLoading ? 'Deploying Contract...' : '🚀 Deploy WrapSell Contract'}
+                                        {isLoading ? 'Desplegando contrato...' : '🚀 Desplegar WrapSell desde URL'}
                                     </button>
                                 </div>
                             </div>
