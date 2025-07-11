@@ -74,6 +74,7 @@ const AdminPage = () => {
         const checkAdminStatus = async () => {
             try {
                 setIsLoading(true);
+                // Verificación de admin SOLO mediante la base de datos (backend)
                 const adminStatus = await poolsService.checkAdminStatus(address || '');
                 setIsAdmin(adminStatus);
 
