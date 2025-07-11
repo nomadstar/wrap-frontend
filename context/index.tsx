@@ -43,7 +43,10 @@ const modal = createAppKit({
     socials: ['google', 'apple', 'github', 'discord'], // Optional - defaults to your Cloud configuration
     emailShowWallets: true, // Optional - defaults to your Cloud configuration
   },
-  themeMode: "light"
+  themeMode: "light",
+  // Configuraciones para mejorar la persistencia
+  enableEIP6963: true,
+  enableCoinbase: true,
   // Optional - defaults to your Cloud configuration
 });
 

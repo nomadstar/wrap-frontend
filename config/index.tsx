@@ -21,6 +21,11 @@ export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   projectId,
   networks,
+  // Mejorar la reconexión automática
+  transports: {
+    [mainnet.id]: http(),
+    [base.id]: http(),
+  },
 });
 
 export const config = wagmiAdapter.wagmiConfig;
