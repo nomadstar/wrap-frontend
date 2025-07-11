@@ -1,8 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import Sidebar from '../../components/webcomponents/sidebar';
 import Navbar from '../../components/webcomponents/Navbar';
-import WalletGuard from '../../components/WalletGuard';
+import { useWalletRedirect } from '../../hooks/useWalletRedirect';
 
 import Dashboard from './dashboard';
 import StatsWidget from './statswidget';
@@ -95,6 +94,7 @@ const mockTCGCards = [
 ];
 
 const WrapPoolPage = () => {
+	const { isWalletConnected } = useWalletRedirect(); // Hook para redirección automática
 	const [activeView, setActiveView] = useState<'dashboard' | 'pool' | 'cards'>('dashboard');
 
 	const renderMainContent = () => {
@@ -134,20 +134,37 @@ const WrapPoolPage = () => {
 	};
 
 	return (
-		<WalletGuard>
+		<>
 			<Navbar />
-			<div className="flex min-h-screen">
-				<Sidebar />
-				<main className="flex-1">
-					<div className="p-6">
-						<div className="flex justify-between items-center mb-6">
-							<h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+			<div className="min-h-screen bg-gray-50">
+				<main className="max-w-7xl mx-auto p-6">
+					<div className="flex justify-between items-center mb-6">
+						<h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+						<div className="flex space-x-4">
+							<button
+								onClick={() => setActiveView('dashboard')}
+								className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeView === 'dashboard'
+									? 'bg-blue-600 text-white'
+									: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+									}`}
+							>
+								Dashboard
+							</button>
+							<button
+								onClick={() => setActiveView('cards')}
+								className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeView === 'cards'
+									? 'bg-blue-600 text-white'
+									: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+									}`}
+							>
+								Cards
+							</button>
 						</div>
-						{renderMainContent()}
 					</div>
+					{renderMainContent()}
 				</main>
 			</div>
-		</WalletGuard>
+		</>
 	);
 };
 

@@ -24,7 +24,7 @@ import { useRouter } from "next/navigation"; // Para Next.js 13+
 import { apiService } from "@/services/api";
 import UserCreationStatus from "@/components/ui/UserCreationStatus";
 import Navbar from "@/components/webcomponents/Navbar";
-import WalletGuard from "@/components/WalletGuard";
+import { useWalletRedirect } from "@/hooks/useWalletRedirect";
 
 const SIMPLE_STORAGE_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_SIMPLE_STORAGE_CONTRACT_ADDRESS;
@@ -125,6 +125,7 @@ function WrapSellApp() {
   const { open } = useAppKit();
   const { address, isConnected } = useAccount();
   const router = useRouter(); // Hook para navegación
+  const { isWalletConnected } = useWalletRedirect(); // Hook para redirección automática
   const [newValue, setNewValue] = useState("");
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
@@ -344,163 +345,161 @@ function WrapSellApp() {
   };
 
   return (
-    <WalletGuard>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <Navbar />
-        <Hero />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <Navbar />
+      <Hero />
 
-        <main className="max-w-4xl mx-auto p-6 py-12">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Smart Contract Interaction
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              This dApp demonstrates real blockchain interactions with a Simple
-              Storage contract. Connect your wallet to read and write values on
-              the blockchain.
-            </p>
-            <div className="mt-4 text-sm text-gray-500 font-mono bg-gray-100 rounded-lg p-2 inline-block">
-              Contract: {SIMPLE_STORAGE_CONTRACT_ADDRESS}
-            </div>
+      <main className="max-w-4xl mx-auto p-6 py-12">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Smart Contract Interaction
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            This dApp demonstrates real blockchain interactions with a Simple
+            Storage contract. Connect your wallet to read and write values on
+            the blockchain.
+          </p>
+          <div className="mt-4 text-sm text-gray-500 font-mono bg-gray-100 rounded-lg p-2 inline-block">
+            Contract: {SIMPLE_STORAGE_CONTRACT_ADDRESS}
           </div>
+        </div>
 
-          <div className="max-w-md mx-auto">
-            <div className="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
-              {message && <StatusMessage message={message} type={messageType} />}
+        <div className="max-w-md mx-auto">
+          <div className="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
+            {message && <StatusMessage message={message} type={messageType} />}
 
-              {isConnected ? (
-                <div className="space-y-8">
-                  {(isCreatingUser || userCreated || isRedirecting || userCreationError) ? (
-                    // Mostrar estado de creación de usuario y redirección
-                    <UserCreationStatus
-                      isCreatingUser={isCreatingUser}
-                      userCreated={userCreated}
-                      isRedirecting={isRedirecting}
-                      error={userCreationError || undefined}
-                    />
-                  ) : (
-                    <>
-                      {/* Wallet Info */}
-                      <div className="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
-                        <div className="flex items-center justify-center mb-3">
-                          <Wallet className="w-6 h-6 text-green-600 mr-2" />
-                          <span className="font-semibold text-green-800">
-                            Wallet Connected
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 font-mono break-all">
-                          {address}
-                        </p>
+            {isConnected ? (
+              <div className="space-y-8">
+                {(isCreatingUser || userCreated || isRedirecting || userCreationError) ? (
+                  // Mostrar estado de creación de usuario y redirección
+                  <UserCreationStatus
+                    isCreatingUser={isCreatingUser}
+                    userCreated={userCreated}
+                    isRedirecting={isRedirecting}
+                    error={userCreationError || undefined}
+                  />
+                ) : (
+                  <>
+                    {/* Wallet Info */}
+                    <div className="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+                      <div className="flex items-center justify-center mb-3">
+                        <Wallet className="w-6 h-6 text-green-600 mr-2" />
+                        <span className="font-semibold text-green-800">
+                          Wallet Connected
+                        </span>
                       </div>
+                      <p className="text-sm text-gray-600 font-mono break-all">
+                        {address}
+                      </p>
+                    </div>
 
-                      {/* Read Contract */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <button
-                            onClick={handleReadValue}
-                            className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none"
-                            disabled={isReading}
-                          >
-                            <RefreshCw
-                              className={`w-5 h-5 ${isReading ? "animate-spin" : ""
-                                }`}
-                            />
-                            <span>{isReading ? "Reading..." : "Read Value"}</span>
-                          </button>
-
-                          {contractValue !== undefined &&
-                            contractValue !== null && (
-                              <div className="text-center">
-                                <p className="text-sm text-gray-500 mb-1">
-                                  Current Value
-                                </p>
-                                <p className="text-2xl font-bold text-green-600">
-                                  {contractValue.toString()}
-                                </p>
-                              </div>
-                            )}
-                        </div>
-                      </div>
-
-                      {/* Write Contract */}
-                      <div className="space-y-4">
-                        <input
-                          type="number"
-                          placeholder="Enter new value (e.g., 42)"
-                          className="w-full border border-gray-300 rounded-xl py-4 px-5 text-gray-700 text-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-inner"
-                          value={newValue}
-                          onChange={(e) => setNewValue(e.target.value)}
-                          min="0"
-                          disabled={isWriting || isConfirming}
-                        />
+                    {/* Read Contract */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
                         <button
-                          onClick={handleWriteValue}
-                          className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none"
-                          disabled={isWriting || isConfirming}
+                          onClick={handleReadValue}
+                          className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none"
+                          disabled={isReading}
                         >
-                          <HardDrive
-                            className={`w-5 h-5 ${isWriting || isConfirming ? "animate-pulse" : ""
+                          <RefreshCw
+                            className={`w-5 h-5 ${isReading ? "animate-spin" : ""
                               }`}
                           />
-                          <span>
-                            {isWriting
-                              ? "Sending Transaction..."
-                              : isConfirming
-                                ? "Confirming..."
-                                : "Write Value"}
-                          </span>
+                          <span>{isReading ? "Reading..." : "Read Value"}</span>
                         </button>
+
+                        {contractValue !== undefined &&
+                          contractValue !== null && (
+                            <div className="text-center">
+                              <p className="text-sm text-gray-500 mb-1">
+                                Current Value
+                              </p>
+                              <p className="text-2xl font-bold text-green-600">
+                                {contractValue.toString()}
+                              </p>
+                            </div>
+                          )}
                       </div>
+                    </div>
 
-                      {/* El botón de wallet ahora está en el Navbar */}
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center space-y-6">
-                  <div className="p-8">
-                    <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                      Welcome to WrapSell
-                    </h3>
-                    <p className="text-gray-500 mb-6">
-                      Connect your wallet using the button in the navigation bar to start interacting with the smart contract
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+                    {/* Write Contract */}
+                    <div className="space-y-4">
+                      <input
+                        type="number"
+                        placeholder="Enter new value (e.g., 42)"
+                        className="w-full border border-gray-300 rounded-xl py-4 px-5 text-gray-700 text-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-inner"
+                        value={newValue}
+                        onChange={(e) => setNewValue(e.target.value)}
+                        min="0"
+                        disabled={isWriting || isConfirming}
+                      />
+                      <button
+                        onClick={handleWriteValue}
+                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none"
+                        disabled={isWriting || isConfirming}
+                      >
+                        <HardDrive
+                          className={`w-5 h-5 ${isWriting || isConfirming ? "animate-pulse" : ""
+                            }`}
+                        />
+                        <span>
+                          {isWriting
+                            ? "Sending Transaction..."
+                            : isConfirming
+                              ? "Confirming..."
+                              : "Write Value"}
+                        </span>
+                      </button>
+                    </div>
 
-          {/* Features Section */}
-          <div className="mt-16 grid md:grid-cols-3 gap-8">
-            <div className="text-center p-6 bg-white rounded-2xl shadow-lg">
-              <HardDrive className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">TCG Marketplace</h3>
-              <p className="text-gray-600">
-                Buy, sell, and discover your favorite TCG cards
-              </p>
-            </div>
-            <div className="text-center p-6 bg-white rounded-2xl shadow-lg">
-              <Zap className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                Secure Crypto Payments
-              </h3>
-              <p className="text-gray-600">
-                Use crypto to buy and sell cards safely and securely
-              </p>
-            </div>
-            <div className="text-center p-6 bg-white rounded-2xl shadow-lg">
-              <Wallet className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Easy Connection</h3>
-              <p className="text-gray-600">
-                Connect your wallet and start trading TCG cards
-              </p>
-            </div>
+                    {/* El botón de wallet ahora está en el Navbar */}
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="text-center space-y-6">
+                <div className="p-8">
+                  <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    Welcome to WrapSell
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Connect your wallet using the button in the navigation bar to start interacting with the smart contract
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        </main>
-      </div>
-    </WalletGuard>
+        </div>
+
+        {/* Features Section */}
+        <div className="mt-16 grid md:grid-cols-3 gap-8">
+          <div className="text-center p-6 bg-white rounded-2xl shadow-lg">
+            <HardDrive className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">TCG Marketplace</h3>
+            <p className="text-gray-600">
+              Buy, sell, and discover your favorite TCG cards
+            </p>
+          </div>
+          <div className="text-center p-6 bg-white rounded-2xl shadow-lg">
+            <Zap className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">
+              Secure Crypto Payments
+            </h3>
+            <p className="text-gray-600">
+              Use crypto to buy and sell cards safely and securely
+            </p>
+          </div>
+          <div className="text-center p-6 bg-white rounded-2xl shadow-lg">
+            <Wallet className="w-12 h-12 text-green-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Easy Connection</h3>
+            <p className="text-gray-600">
+              Connect your wallet and start trading TCG cards
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
 

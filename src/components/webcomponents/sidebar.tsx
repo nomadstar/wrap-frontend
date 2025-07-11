@@ -65,11 +65,6 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                                                 Admin
                                             </a>
                                         </li>
-                                        <li>
-                                            <a href="/wallet" className="block p-2 rounded hover:bg-gray-700">
-                                                Wallet
-                                            </a>
-                                        </li>
                                     </ul>
                                 </nav>
                             )}

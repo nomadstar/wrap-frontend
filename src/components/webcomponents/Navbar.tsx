@@ -77,7 +77,7 @@ const Navbar: React.FC = () => {
                             </li>
                             <li>
                                 <a
-                                    href="/wallet"
+                                    href="/admin"
                                     style={{
                                         color: '#fff',
                                         textDecoration: 'none',
@@ -87,7 +87,7 @@ const Navbar: React.FC = () => {
                                     onMouseOver={(e) => (e.target as HTMLElement).style.color = '#c084fc'}
                                     onMouseOut={(e) => (e.target as HTMLElement).style.color = '#fff'}
                                 >
-                                    Wallet
+                                    Admin
                                 </a>
                             </li>
                         </>
