@@ -13,8 +13,8 @@ export default function WalletPersistenceProvider({ children }: { children: Reac
 
     useEffect(() => {
         // Log para debugging
-        console.log('Wallet Status:', { 
-            isConnected, 
+        console.log('Wallet Status:', {
+            isConnected,
             reconnectAttempts,
             timestamp: new Date().toISOString()
         });
