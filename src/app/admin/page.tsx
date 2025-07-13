@@ -444,6 +444,8 @@ const AdminPage = () => {
                 console.log('❌ Admin check error:', error);
                 setIsAdmin(false);
                 setIsLoading(false);
+                setIsAdmin(false);
+                setIsLoading(false);
             }
         };
         checkAdmin();
