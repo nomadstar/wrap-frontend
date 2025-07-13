@@ -432,26 +432,18 @@ const AdminPage = () => {
                 return;
             }
             try {
-                const res = await fetch(`/admin/endpoint?wallet=${address}`);
-                const data = await res.json();
-                console.log('📋 Admin check response:', data);
+                // Usar el servicio poolsService que tiene fallback para wallets hardcodeadas
+                const adminStatus = await poolsService.checkAdminStatus(address);
+                console.log('📋 Admin status from service:', adminStatus);
 
-                const adminStatus = data.is_admin || data.isAdmin;
-                console.log('📋 Admin status extracted:', adminStatus);
-
-                // Force state update in the next tick
-                setTimeout(() => {
-                    setIsAdmin(adminStatus);
-                    setIsLoading(false);
-                    console.log('✅ State updated - isAdmin:', adminStatus);
-                }, 0);
+                setIsAdmin(adminStatus);
+                setIsLoading(false);
+                console.log('✅ State updated - isAdmin:', adminStatus);
 
             } catch (error) {
                 console.log('❌ Admin check error:', error);
-                setTimeout(() => {
-                    setIsAdmin(false);
-                    setIsLoading(false);
-                }, 0);
+                setIsAdmin(false);
+                setIsLoading(false);
             }
         };
         checkAdmin();
