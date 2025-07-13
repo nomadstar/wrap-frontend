@@ -439,19 +439,14 @@ const AdminPage = () => {
                 const adminStatus = data.is_admin || data.isAdmin;
                 console.log('📋 Admin status extracted:', adminStatus);
 
-                // Force state update in the next tick
-                setTimeout(() => {
-                    setIsAdmin(adminStatus);
-                    setIsLoading(false);
-                    console.log('✅ State updated - isAdmin:', adminStatus);
-                }, 0);
+                setIsAdmin(!!adminStatus);
+                setIsLoading(false);
+                console.log('✅ State updated - isAdmin:', adminStatus);
 
             } catch (error) {
                 console.log('❌ Admin check error:', error);
-                setTimeout(() => {
-                    setIsAdmin(false);
-                    setIsLoading(false);
-                }, 0);
+                setIsAdmin(false);
+                setIsLoading(false);
             }
         };
         checkAdmin();
