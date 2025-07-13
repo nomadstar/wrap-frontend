@@ -425,6 +425,7 @@ const AdminPage = () => {
     // Verificar admin
     useEffect(() => {
         const checkAdmin = async () => {
+            console.log('🔍 Checking admin status for wallet:', address);
             if (!address) {
                 setIsAdmin(false);
                 setIsLoading(false);
@@ -434,11 +435,23 @@ const AdminPage = () => {
                 const res = await fetch(`/admin/endpoint?wallet=${address}`);
                 const data = await res.json();
                 console.log('📋 Admin check response:', data);
-                setIsAdmin(data.is_admin || data.isAdmin); // Soporte para ambos formatos
-            } catch {
-                setIsAdmin(false);
-            } finally {
-                setIsLoading(false);
+
+                const adminStatus = data.is_admin || data.isAdmin;
+                console.log('📋 Admin status extracted:', adminStatus);
+
+                // Force state update in the next tick
+                setTimeout(() => {
+                    setIsAdmin(adminStatus);
+                    setIsLoading(false);
+                    console.log('✅ State updated - isAdmin:', adminStatus);
+                }, 0);
+
+            } catch (error) {
+                console.log('❌ Admin check error:', error);
+                setTimeout(() => {
+                    setIsAdmin(false);
+                    setIsLoading(false);
+                }, 0);
             }
         };
         checkAdmin();
