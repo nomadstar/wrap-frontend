@@ -433,7 +433,8 @@ const AdminPage = () => {
             try {
                 const res = await fetch(`/admin/endpoint?wallet=${address}`);
                 const data = await res.json();
-                setIsAdmin(data.isAdmin);
+                console.log('📋 Admin check response:', data);
+                setIsAdmin(data.is_admin || data.isAdmin); // Soporte para ambos formatos
             } catch {
                 setIsAdmin(false);
             } finally {
